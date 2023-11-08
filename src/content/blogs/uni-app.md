@@ -2,7 +2,7 @@
 external: false
 title: "uni-app"
 description: "uni-app related code snippets."
-date: "2023-02-17"
+date: "2023-11-08"
 ---
 
 ## request
@@ -20,15 +20,12 @@ const baseRequest = (method, url, data) => {
       method,
       header: {
         Authorization: `Bearer ${uni.getStorageSync("token")}`,
-        Entry: "1",
       },
-      sslVerify: false,
       success: (res) => {
         if (res.statusCode === 401) {
-          uni.navigateTo({
+         return uni.navigateTo({
             url: "/common/pages/login/index",
           });
-          return;
         }
         if (!res.statusCode.toString().startsWith("2")) {
           uni.showToast({
