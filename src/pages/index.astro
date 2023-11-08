@@ -14,14 +14,16 @@ console.log(cards);
 ---
 
 <Layout title="code-snippet" desc="code-snippet for font-end developer.">
-  <h1 class="text-center text-6xl font-bold mt-10">Code Snippet</h1>
-  {
-    cards.map((item) => (
-      <div class="max-w-screen-xl mx-auto">
-        <div class="my-10">
-          <Card {...item} />
+  <div>
+    <h1 class="text-center text-2xl font-bold mt-10 md:text-6xl">Code Snippet</h1>
+    {
+      cards.map((item) => (
+        <div>
+          <div class="my-10">
+            <Card {...item} />
+          </div>
         </div>
-      </div>
-    ))
-  }
+      ))
+    }
+  </div>
 </Layout>

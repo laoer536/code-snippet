@@ -3,6 +3,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/fira-code";
 import "@fontsource-variable/noto-sans-sc";
 import ThemeIcon from "../components/ThemeIcon.astro";
+import Footer from "../components/Footer.astro";
 // const base = import.meta.env.PUBLIC_BASE_PATH;
 // const urlPath = base ? `/${base}/favicon.svg` : `/favicon.svg`;
 // const fixedUrlOath = urlPath.replace("//", "/");
@@ -31,7 +32,12 @@ const { title, isMd, desc } = Astro.props;
   </head>
   <body class:list={[{ "isMd prose prose-neutral lg:prose-lg": isMd }]}>
     <ThemeIcon />
-    <slot />
+    <main class="flex justify-center items-start absolute h-full w-full top-0 left-0">
+      <div class="w-full min-h-full flex justify-between flex-col py-8 px-4 max-w-2xl mx-auto md:px-0">
+        <slot />
+        <Footer />
+      </div>
+    </main>
   </body>
 </html>
 <style is:global>
