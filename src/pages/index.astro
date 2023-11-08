@@ -7,7 +7,7 @@ const base = import.meta.env.PUBLIC_BASE_PATH;
 const isDocker = import.meta.env.PUBLIC_IS_DOCKER === "true";
 const cards = blogEntries.map((item) => ({
   body: item.data.date,
-  href: (isDocker ? "" : base) + item.slug,
+  href: (isDocker ? "" : base) + "/" + item.slug,
   title: item.data.title,
 }));
 console.log(cards);
