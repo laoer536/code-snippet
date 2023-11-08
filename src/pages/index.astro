@@ -1,0 +1,28 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "@layouts/Layout.astro";
+import Card from "@components/Card.astro";
+const blogEntries = await getCollection("blogs");
+const base = import.meta.env.PUBLIC_BASE_PATH;
+const isDocker = import.meta.env.PUBLIC_IS_DOCKER;
+console.log("isDocker", isDocker);
+const cards = blogEntries.map((item) => ({
+  body: item.data.date,
+  href: (isDocker === "true" ? "" : base) + item.slug,
+  title: item.data.title,
+}));
+console.log(cards);
+---
+
+<Layout title="code-snippet" desc="code-snippet for font-end developer.">
+  <h1 class="text-center text-6xl font-bold mt-10">Code Snippet</h1>
+  {
+    cards.map((item) => (
+      <div class="max-w-screen-xl mx-auto">
+        <div class="my-10">
+          <Card {...item} />
+        </div>
+      </div>
+    ))
+  }
+</Layout>

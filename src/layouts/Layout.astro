@@ -1,0 +1,65 @@
+---
+import "@fontsource-variable/inter";
+import "@fontsource-variable/fira-code";
+import "@fontsource-variable/noto-sans-sc";
+import ThemeIcon from "../components/ThemeIcon.astro";
+// const base = import.meta.env.PUBLIC_BASE_PATH;
+// const urlPath = base ? `/${base}/favicon.svg` : `/favicon.svg`;
+// const fixedUrlOath = urlPath.replace("//", "/");
+interface Props {
+  title: string;
+  desc: string;
+  isMd?: boolean;
+}
+
+const { title, isMd, desc } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={desc} />
+    <meta name="title" content={title} />
+    <meta name="og:description" content={desc} />
+    <meta name="og:title" content={title} />
+    <meta name="author" content="laoer536" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" href="https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class:list={[{ "isMd prose prose-neutral lg:prose-lg": isMd }]}>
+    <ThemeIcon />
+    <slot />
+  </body>
+</html>
+<style is:global>
+  :root {
+    --accent: 136, 58, 234;
+    --accent-light: 224, 204, 250;
+    --accent-dark: 15, 23, 42;
+    --accent-gradient: linear-gradient(45deg, rgb(var(--accent)), rgb(var(--accent-light)) 30%, white 60%);
+  }
+  .dark .isMd {
+    @apply prose-invert;
+  }
+  html {
+    font-family: "Inter Variable", "Noto Sans SC Variable", system-ui, sans-serif;
+    background: rgb(var(--accent-light));
+    font-weight: 500;
+  }
+  html.dark {
+    background: rgb(var(--accent-dark));
+    color: #aba8bd;
+  }
+  .dark .nav-links a {
+    color: #fff;
+  }
+  body {
+    @apply py-10 w-full p-4 lg:mx-auto lg:p-0 lg:py-16;
+  }
+  code {
+    font-family: "Fira Code Variable", "Noto Sans SC", sans-serif !important;
+  }
+</style>
