@@ -4,11 +4,10 @@ import Layout from "@layouts/Layout.astro";
 import Card from "@components/Card.astro";
 const blogEntries = await getCollection("blogs");
 const base = import.meta.env.PUBLIC_BASE_PATH;
-const isDocker = import.meta.env.PUBLIC_IS_DOCKER;
-console.log("isDocker", isDocker);
+const isDocker = import.meta.env.PUBLIC_IS_DOCKER === "true";
 const cards = blogEntries.map((item) => ({
   body: item.data.date,
-  href: (isDocker === "true" ? "" : base) + item.slug,
+  href: (isDocker ? "" : base) + item.slug,
   title: item.data.title,
 }));
 console.log(cards);
