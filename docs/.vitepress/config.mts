@@ -5,7 +5,10 @@ export default defineConfig({
   title: "code-snippet",
   description: "laoer536代码片段收集。",
   base:'/code-snippet/',
+  lastUpdated:true,
+  head: [['link', { rel: 'icon', href: 'https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png' }]],
   themeConfig: {
+    logo:'https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png',
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: 'Home', link: '/' },
