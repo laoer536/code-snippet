@@ -1,7 +1,7 @@
 ---
 external: false
 title: "axios"
-description: "uni-app related code snippets."
+description: "axios related code snippets."
 date: "2023-11-09"
 ---
 
