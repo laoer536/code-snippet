@@ -4,6 +4,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "code-snippet",
   description: "laoer536代码片段收集。",
+  base:'/code-snippet/',
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
