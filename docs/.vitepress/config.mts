@@ -14,7 +14,7 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: '开始',
+        // text: '开始',
         // collapsed:true,
         items: [
           { text: 'uniapp', link: '/uniapp' },
