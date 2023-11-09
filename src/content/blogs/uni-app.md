@@ -8,6 +8,15 @@ date: "2023-11-08"
 ## request
 
 ```js
+//config.js
+export const requestConfig = {
+  timeout: 8000,
+  baseUrl: import.meta.env.VITE_API_BASE_URL,
+};
+```
+
+```js
+//XXX.js
 import { requestConfig } from "./config.js";
 
 const baseRequest = (method, url, data) => {
@@ -23,7 +32,7 @@ const baseRequest = (method, url, data) => {
       },
       success: (res) => {
         if (res.statusCode === 401) {
-         return uni.navigateTo({
+          return uni.navigateTo({
             url: "/common/pages/login/index",
           });
         }
@@ -51,4 +60,30 @@ const request = {
 };
 
 export default request;
+```
+
+## pay
+
+```js
+export function orderPay({ orderInfo, success, fail }) {
+  const dealedOrderInfo = {
+    ...orderInfo,
+    xxx: "xxx",
+    xxx: "xxxx",
+    xxxx: "xxx",
+  };
+  request
+    .post("/xxx/xxxx/xxxxx", dealedOrderInfo)
+    .then((payInfo) => {
+      uni.requestPayment({
+        provider: "wxpay",
+        ...JSON.parse(payInfo.xxxx), //支付需要的参数
+        success,
+        fail,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
 ```
