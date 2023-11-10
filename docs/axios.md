@@ -1,12 +1,12 @@
 ---
-external: false
 title: "axios"
-description: "axios related code snippets."
-date: "2023-11-09"
 ---
 
+# axios
+
+## axios-setup.ts
+
 ```ts
-//axios-setup.ts
 import type { AxiosRequestConfig } from "axios";
 
 /** 定义axios基础配置 */
@@ -16,8 +16,9 @@ export const axiosBaseOptions: AxiosRequestConfig = {
 };
 ```
 
+## type.ts
+
 ```ts
-//type.ts
 import type { AxiosProgressEvent, AxiosRequestConfig } from "axios";
 
 export interface Upload {
@@ -50,6 +51,7 @@ export interface UrlDownload {
 }
 ```
 
+## index.ts
 ```ts
 //index.ts
 import type { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";

@@ -1,9 +1,8 @@
 ---
-external: false
 title: "uni-app"
-description: "uni-app related code snippets."
-date: "2023-11-08"
 ---
+
+# uni-app
 
 ## request
 
