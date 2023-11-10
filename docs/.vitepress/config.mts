@@ -25,6 +25,12 @@ export default defineConfig({
   ],
   themeConfig: {
     logo: "https://s2.loli.net/2021/12/16/rxjhMFtGElVIuyz.png",
+    editLink: {
+      pattern: 'https://github.com/laoer536/code-snippet/edit/main/docs/:path'
+    },
+    search: {
+      provider: 'local'
+    },
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "Home", link: "/" },
@@ -45,5 +51,10 @@ export default defineConfig({
     socialLinks: [
       { icon: "github", link: "https://github.com/laoer536/code-snippet" },
     ],
+
+    footer:{
+      message: 'Released under the MIT License.',
+      copyright: 'Copyright © 2023-present laoer536'
+    }
   },
 });
