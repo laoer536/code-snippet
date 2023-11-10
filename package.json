@@ -5,6 +5,9 @@
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "docker:build": "docker build -t code-snippet .",
+    "docker:run": "docker rm -f code-snippet && docker run --name code-snippet -d -p 8080:8080 code-snippet",
+    "release:local": "pnpm docker:build && pnpm docker:run"
   }
 }
