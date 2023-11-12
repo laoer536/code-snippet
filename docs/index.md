@@ -4,22 +4,22 @@ layout: home
 
 hero:
   name: "code-snippet"
-  text: "代码片段收集"
-#  tagline: My great project tagline
+#  text: "Code snippet collection"
+  tagline: Collect and share some commonly used code snippets.
   actions:
     - theme: brand
       text: docs →
       link: /uniapp
-#    - theme: alt
-#      text: API Examples
-#      link: /api-examples
+    - theme: alt
+      text: View on Github
+      link: https://github.com/laoer536/code-snippet
 
 features:
-  - title: 多方面覆盖
-    details: 包括前端可能涉及到的各个技术栈，您将可以在这里得到有用的相关代码片段。
-  - title: 快捷、美观
-    details: 简洁大方的界面，带来赏心悦目的浏览体验。
-  - title: 共建
-    details: 您可以提交PR来贡献你的文章到该项目，合并后你的文章将自动发表。
+  - title: Multifaceted Coverage
+    details: Include the various technology stacks that may be involved in the front-end, and you will be able to get useful relevant code snippets here.
+  - title: Fast and Beautiful
+    details: The simple and elegant interface brings a pleasing browsing experience.
+  - title: Build Together
+    details: You can submit a PR to contribute your article to the project, and your article will be automatically published after the merger.
 ---
 
