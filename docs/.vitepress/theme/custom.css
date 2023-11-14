@@ -1,0 +1,5 @@
+@import '@fontsource-variable/fira-code';
+:root {
+    /*--vp-font-family-base: !* normal text font *!*/
+    --vp-font-family-mono:'Fira Code Variable', sans-serif;
+}
