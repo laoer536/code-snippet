@@ -15,10 +15,10 @@ export const requestConfig = {
 ```
 
 ```js
-//XXX.js
+//request.js
 import { requestConfig } from './config.js'
 
-const baseRequest = (method, url, data) => {
+const baseRequest = (method, url, data, myHeader) => {
   const { baseUrl, timeout } = requestConfig
   return new Promise((resolve, reject) => {
     uni.request({
@@ -28,12 +28,14 @@ const baseRequest = (method, url, data) => {
       method,
       header: {
         Authorization: `Bearer ${uni.getStorageSync('token')}`,
+        ...myHeader,
       },
       success: (res) => {
         if (res.statusCode === 401) {
-          return uni.navigateTo({
+          uni.navigateTo({
             url: '/common/pages/login/index',
           })
+          return
         }
         if (!res.statusCode.toString().startsWith('2')) {
           uni.showToast({
@@ -52,10 +54,11 @@ const baseRequest = (method, url, data) => {
 }
 
 const request = {
-  get: (url, data) => baseRequest('GET', url, data),
-  post: (url, data) => baseRequest('POST', url, data),
-  put: (url, data) => baseRequest('PUT', url, data),
-  delete: (url, data) => baseRequest('DELETE', url, data),
+  get: (url, data, myHeader = {}) => baseRequest('GET', url, data, myHeader),
+  post: (url, data, myHeader = {}) => baseRequest('POST', url, data, myHeader),
+  put: (url, data, myHeader = {}) => baseRequest('PUT', url, data, myHeader),
+  delete: (url, data, myHeader = {}) =>
+    baseRequest('DELETE', url, data, myHeader),
 }
 
 export default request
@@ -87,7 +90,7 @@ export function orderPay({ orderInfo, success, fail }) {
 }
 ```
 
-## Real time recording
+## real time recording
 
 ```js
 export function realTimeShow({ srcLanguage, tarLanguage, success }) {
@@ -96,7 +99,9 @@ export function realTimeShow({ srcLanguage, tarLanguage, success }) {
   recorderManager.onFrameRecorded(({ frameBuffer, isLastFrame }) => {
     const curUint8Array = new Uint8Array(frameBuffer)
     const preUint8Array = new Uint8Array(recorderManagerBuffer)
-    const combinedBuffer = new ArrayBuffer(frameBuffer.byteLength + recorderManagerBuffer.byteLength)
+    const combinedBuffer = new ArrayBuffer(
+      frameBuffer.byteLength + recorderManagerBuffer.byteLength
+    )
     const combinedArray = new Uint8Array(combinedBuffer)
     for (let i = 0; i < recorderManagerBuffer.byteLength; i++) {
       combinedArray[i] = preUint8Array[i]
@@ -106,9 +111,13 @@ export function realTimeShow({ srcLanguage, tarLanguage, success }) {
     }
     recorderManagerBuffer = combinedBuffer
     request
-      .post(`/api/xxx/xxxx/xxxxxx?srcLanguage=${srcLanguage}&targetLanguage=${tarLanguage}`, recorderManagerBuffer, {
-        'Content-Type': 'application/octet-stream',
-      })
+      .post(
+        `/api/xxx/xxxx/xxxxxx?srcLanguage=${srcLanguage}&targetLanguage=${tarLanguage}`,
+        recorderManagerBuffer,
+        {
+          'Content-Type': 'application/octet-stream',
+        }
+      )
       .then((data) => {
         success && success(data)
         if (isLastFrame) {
