@@ -18,7 +18,7 @@ export const requestConfig = {
 //request.js
 import { requestConfig } from './config.js'
 
-const baseRequest = (method, url, data, myHeader) => {
+const baseRequest = (method, url, data, myHeader, responseType) => {
   const { baseUrl, timeout } = requestConfig
   return new Promise((resolve, reject) => {
     uni.request({
@@ -26,8 +26,10 @@ const baseRequest = (method, url, data, myHeader) => {
       timeout,
       data,
       method,
+      responseType,
       header: {
         Authorization: `Bearer ${uni.getStorageSync('token')}`,
+        Entry: '1',
         ...myHeader,
       },
       success: (res) => {
@@ -44,6 +46,14 @@ const baseRequest = (method, url, data, myHeader) => {
           })
           return reject(res.data.error)
         }
+        if (responseType === 'arraybuffer') {
+          const fs = uni.getFileSystemManager()
+          const filePath = `${wx.env.USER_DATA_PATH}/${new Date().getTime()}.${
+            res.header['Content-Type'].split('/')[1]
+          }`
+          fs.writeFileSync(filePath, res.data, 'binary')
+          return resolve(filePath)
+        }
         resolve(res.data)
       },
       fail: (err) => {
@@ -54,10 +64,13 @@ const baseRequest = (method, url, data, myHeader) => {
 }
 
 const request = {
-  get: (url, data, myHeader = {}) => baseRequest('GET', url, data, myHeader),
-  post: (url, data, myHeader = {}) => baseRequest('POST', url, data, myHeader),
-  put: (url, data, myHeader = {}) => baseRequest('PUT', url, data, myHeader),
-  delete: (url, data, myHeader = {}) =>
+  get: (url, data, myHeader = {}, responseType = 'text') =>
+    baseRequest('GET', url, data, myHeader),
+  post: (url, data, myHeader = {}, responseType = 'text') =>
+    baseRequest('POST', url, data, myHeader, responseType),
+  put: (url, data, myHeader = {}, responseType = 'text') =>
+    baseRequest('PUT', url, data, myHeader),
+  delete: (url, data, myHeader = {}, responseType = 'text') =>
     baseRequest('DELETE', url, data, myHeader),
 }
 
@@ -71,7 +84,7 @@ export function orderPay({ orderInfo, success, fail }) {
   const dealedOrderInfo = {
     ...orderInfo,
     xxx: 'xxx',
-    xxx: 'xxxx',
+    xxx2: 'xxxx',
     xxxx: 'xxx',
   }
   request
@@ -100,7 +113,7 @@ export function realTimeShow({ srcLanguage, tarLanguage, success }) {
     const curUint8Array = new Uint8Array(frameBuffer)
     const preUint8Array = new Uint8Array(recorderManagerBuffer)
     const combinedBuffer = new ArrayBuffer(
-      frameBuffer.byteLength + recorderManagerBuffer.byteLength
+      frameBuffer.byteLength + recorderManagerBuffer.byteLength,
     )
     const combinedArray = new Uint8Array(combinedBuffer)
     for (let i = 0; i < recorderManagerBuffer.byteLength; i++) {
@@ -116,7 +129,7 @@ export function realTimeShow({ srcLanguage, tarLanguage, success }) {
         recorderManagerBuffer,
         {
           'Content-Type': 'application/octet-stream',
-        }
+        },
       )
       .then((data) => {
         success && success(data)
