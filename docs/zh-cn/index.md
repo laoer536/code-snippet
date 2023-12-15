@@ -3,8 +3,8 @@
 layout: home
 
 hero:
-  name: "code-snippet"
-#  text: "Code snippet collection"
+  name: 'code-snippet'
+  #  text: "Code snippet collection"
   tagline: 收集并分享一些常用的代码片段。
   actions:
     - theme: brand
@@ -22,4 +22,3 @@ features:
   - title: 共建
     details: 您可以提交PR来贡献你的文章到该项目，合并后你的文章将自动发表。
 ---
-

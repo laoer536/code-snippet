@@ -1,5 +1,5 @@
 ---
-title: "axios"
+title: 'axios'
 ---
 
 # axios
@@ -52,6 +52,7 @@ export interface UrlDownload {
 ```
 
 ## index.ts
+
 ```ts
 //index.ts
 import type { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
