@@ -53,6 +53,7 @@ export default defineConfig({
         items: [
           { text: "uniapp", link: "/uniapp" },
           { text: "axios", link: "/axios" },
+          { text: "electron", link: "/electron" },
         ],
       },
     ],
