@@ -237,3 +237,36 @@ class MyAxios {
 
 export const request = new MyAxios(axiosBaseOptions);
 ```
+
+## xhr 下载
+
+```js
+export function download (url, data) {
+  const TOKEN = storageToken.get() || null
+  if (!TOKEN) {
+    router.push('/login')
+    return
+  }
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest()
+    x.open('POST', '/api/download/XXX/XXXX', true)
+    x.responseType = 'blob'
+    x.setRequestHeader('Authorization', `Bearer ${TOKEN}`)
+    x.setRequestHeader('Content-Type', 'application/json')
+    x.onload = () => {
+      const url = window.URL.createObjectURL(x.response)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = decodeURIComponent(analysisFilename(x.getResponseHeader('content-disposition')))
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(a.href)
+      resolve(x.response)
+    }
+    x.onerror = err => {
+      reject(err)
+    }
+    x.send(JSON.stringify(data))
+  })
+}
+```
