@@ -97,9 +97,7 @@ export function orderPay({ orderInfo, success, fail }) {
         fail,
       })
     })
-    .catch((err) => {
-      console.log(err)
-    })
+    .catch(fail)
 }
 ```
 
