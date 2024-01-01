@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+dependencies:
+  '@fontsource-variable/fira-code':
+    specifier: ^5.0.15
+    version: 5.0.15
+
 devDependencies:
   vitepress:
     specifier: 1.0.0-rc.25
@@ -412,6 +417,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@fontsource-variable/fira-code@5.0.15:
+    resolution: {integrity: sha512-tp56A54PjfH1RBJQ3Jdqh5cvrEHd4n302z3v6sGAnTKW9+oQgU0dK4WAMIXgDhFY35BrhpoIElowfkAT7NYJfA==}
+    dev: false
 
   /@jridgewell/sourcemap-codec@1.4.15:
     resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}

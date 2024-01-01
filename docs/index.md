@@ -3,8 +3,8 @@
 layout: home
 
 hero:
-  name: "code-snippet"
-#  text: "Code snippet collection"
+  name: 'code-snippet'
+  #  text: "Code snippet collection"
   tagline: Collect and share some commonly used code snippets.
   actions:
     - theme: brand
@@ -22,4 +22,3 @@ features:
   - title: Build Together
     details: You can submit a PR to contribute your article to the project, and your article will be automatically published after the merger.
 ---
-
