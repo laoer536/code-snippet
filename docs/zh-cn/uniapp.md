@@ -18,22 +18,23 @@ export const requestConfig = {
 //request.js
 import { requestConfig } from './config.js'
 
-const baseRequest = (method, url, data, myHeader, responseType) => {
+const baseRequest = (method, url, data, otherConfig) => {
   const { baseUrl, timeout } = requestConfig
+  const otherHeader = otherConfig.header || {}
   return new Promise((resolve, reject) => {
     uni.request({
+      ...otherConfig,
       url: baseUrl + url,
       timeout,
       data,
       method,
-      responseType,
       header: {
         Authorization: `Bearer ${uni.getStorageSync('token')}`,
         Entry: '1',
-        ...myHeader,
+        ...otherHeader
       },
       success: (res) => {
-        if (res.statusCode === 401) {
+        if (res.statusCode === 401) { 
           uni.navigateTo({
             url: '/common/pages/login/index',
           })
@@ -64,14 +65,14 @@ const baseRequest = (method, url, data, myHeader, responseType) => {
 }
 
 const request = {
-  get: (url, data, myHeader = {}, responseType = 'text') =>
-    baseRequest('GET', url, data, myHeader),
-  post: (url, data, myHeader = {}, responseType = 'text') =>
-    baseRequest('POST', url, data, myHeader, responseType),
-  put: (url, data, myHeader = {}, responseType = 'text') =>
-    baseRequest('PUT', url, data, myHeader),
-  delete: (url, data, myHeader = {}, responseType = 'text') =>
-    baseRequest('DELETE', url, data, myHeader),
+  get: (url, data, otherConfig={}) =>
+    baseRequest('GET', url, data, otherConfig),
+  post: (url, data, otherConfig={}) =>
+    baseRequest('POST', url, data, otherConfig),
+  put: (url, data, otherConfig={}) =>
+    baseRequest('PUT', url, data, otherConfig),
+  delete: (url, data, otherConfig={}) =>
+    baseRequest('DELETE', url, data, otherConfig),
 }
 
 export default request
