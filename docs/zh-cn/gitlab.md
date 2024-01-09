@@ -9,7 +9,6 @@ title: 'gitlab'
 > 注意：这里用的是Windows版本的gitlab-runner。方便使用内置命令。
 
 ```yaml
-
   stages:
     - deploy
 
@@ -20,5 +19,4 @@ title: 'gitlab'
     script:
       - pnpm i
       - pnpm release:local
-
 ```

@@ -9,7 +9,6 @@ title: 'gitlab'
 > Note: use gitlab-runner Windows version. Convenient to use built-in commands.
 
 ```yaml
-
   stages:
     - deploy
 
@@ -20,5 +19,4 @@ title: 'gitlab'
     script:
       - pnpm i
       - pnpm release:local
-
 ```
