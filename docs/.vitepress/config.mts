@@ -55,6 +55,7 @@ export default defineConfig({
           { text: "axios", link: "/axios" },
           { text: "electron", link: "/electron" },
           { text: "gitlab", link: "/gitlab" },
+          { text: "nuxt", link: "/nuxt" },
         ],
       },
     ],
