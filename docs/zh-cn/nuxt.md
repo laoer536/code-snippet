@@ -27,9 +27,9 @@ export function madeClient() {
 ```vue
 <template>
   <div class="rich-text">
-    <no-ssr placeholder="加载中...">
+    <client-only placeholder="加载中...">
     <CKEditor v-model="editorData" :editor="editor" :config="editorConfig" />
-    </no-ssr>
+    </client-only>
   </div>
 </template>
 
