@@ -35,15 +35,15 @@ export function madeClient() {
 
 <script>
   import { madeClient } from '~/components/bases/rich-text/made-client'
-  const clientInfo = madeClient()
+  const {BalloonBuildEditor,CKEditor} = madeClient()
   export default {
     name: 'RichText',
     components: {
-      CKEditor: clientInfo.CKEditor.component,
+      CKEditor: CKEditor.component,
     },
     data() {
       return {
-        editor: clientInfo.BalloonBuildEditor,
+        editor: BalloonBuildEditor,
         editorData: '<p>Content of the editor.</p>',
         editorConfig: {
           // The configuration of the editor.
