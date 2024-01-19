@@ -289,7 +289,7 @@ export default {
         &::-webkit-slider-runnable-track {
           width: 100%;
           height: 4px;
-          background: linear-gradient(to right, #7266ff var(--process-value-left), #eee var(--process-value-right));
+          background: #eeeeee;
           border-radius: 2px 2px 2px 2px;
         }
         &::-webkit-slider-thumb {
