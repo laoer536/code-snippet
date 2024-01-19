@@ -200,11 +200,12 @@ export default {
   methods: {
     timeFormat,
     spaceKeyEnroll() {
+      // Listen globally for space key operations to start and pause playback controls.
       this.abortController = new AbortController()
       document.addEventListener(
         'keydown',
         (event) => {
-          // 检查按下的键是否是空格键
+          // Check if the key you pressed is a space key.
           if (event.code === 'Space') {
             event.preventDefault()
             if (this.voiceIsPlay) {

@@ -9,7 +9,7 @@ hero:
   actions:
     - theme: brand
       text: 文档 →
-      link: /uniapp
+      link: /audio
     - theme: alt
       text: 在Github上查看
       link: https://github.com/laoer536/code-snippet

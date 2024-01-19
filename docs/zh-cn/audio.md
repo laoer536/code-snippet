@@ -200,6 +200,7 @@ export default {
   methods: {
     timeFormat,
     spaceKeyEnroll() {
+      // 全局监听空格键操作，实现开始和暂停播放控制。
       this.abortController = new AbortController()
       document.addEventListener(
         'keydown',

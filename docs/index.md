@@ -9,7 +9,7 @@ hero:
   actions:
     - theme: brand
       text: docs →
-      link: /uniapp
+      link: /audio
     - theme: alt
       text: View on Github
       link: https://github.com/laoer536/code-snippet
