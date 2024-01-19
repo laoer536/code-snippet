@@ -48,8 +48,15 @@ export default defineConfig({
 
     sidebar: [
       {
-        // text: '开始',
-        // collapsed:true,
+        text: 'html',
+        collapsed:true,
+        items: [
+          { text: "audio", link: "/audio" },
+        ],
+      },
+      {
+        text: 'frame',
+        collapsed:true,
         items: [
           { text: "uniapp", link: "/uniapp" },
           { text: "axios", link: "/axios" },
