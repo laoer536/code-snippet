@@ -71,12 +71,13 @@ export const dateFormat = (type, val) => {
 <template>
   <div class="audio-bar">
     <audio ref="my-audio" class="audio-element" :src="audioUrl"></audio>
+    <!--进度条-->
     <div class="process-container">
-      <!--当前时间显示-->
       <div class="process-value" :style="{ width: (currentTime / totalTime) * 100 + '%' }"></div>
     </div>
     <div class="control-container">
       <div class="time">
+        <!--当前时间显示-->
         <span>{{ timeFormat(currentTime) }}/{{ timeFormat(totalTime) }}</span>
       </div>
       <div class="play">
@@ -84,7 +85,7 @@ export const dateFormat = (type, val) => {
         <img
           class="process"
           src="@/assets/img/speech-tran/audio-bar/back-process.png"
-          alt=""
+          alt="后退5s"
           @click="processControl('backOff')"
         />
         <!--开始播放-->
@@ -92,7 +93,7 @@ export const dateFormat = (type, val) => {
           v-show="!voiceIsPlay"
           class="start"
           src="@/assets/img/speech-tran/audio-bar/start-play.png"
-          alt=""
+          alt="开始播放"
           @click="play"
         />
         <!--暂停播放-->
@@ -100,14 +101,14 @@ export const dateFormat = (type, val) => {
           v-show="voiceIsPlay"
           class="start"
           src="@/assets/img/speech-tran/audio-bar/pause-play.png"
-          alt=""
+          alt="暂停播放"
           @click="pause"
         />
         <!--前进5s-->
         <img
           class="process"
           src="@/assets/img/speech-tran/audio-bar/go-process.png"
-          alt=""
+          alt="前进5s"
           @click="processControl('advance')"
         />
       </div>

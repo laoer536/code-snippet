@@ -49,14 +49,14 @@ export default defineConfig({
     sidebar: [
       {
         text: 'html',
-        collapsed:true,
+        // collapsed:true,
         items: [
           { text: "audio", link: "/audio" },
         ],
       },
       {
         text: 'frame',
-        collapsed:true,
+        // collapsed:true,
         items: [
           { text: "uniapp", link: "/uniapp" },
           { text: "axios", link: "/axios" },
