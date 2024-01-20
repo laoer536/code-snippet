@@ -28,29 +28,29 @@ export function madeClient() {
 <template>
   <div class="rich-text">
     <client-only placeholder="加载中...">
-    <CKEditor v-model="editorData" :editor="editor" :config="editorConfig" />
+      <CKEditor v-model="editorData" :editor="editor" :config="editorConfig" />
     </client-only>
   </div>
 </template>
 
 <script>
-  import { madeClient } from '~/components/bases/rich-text/made-client'
-  const clientInfo = madeClient()
-  export default {
-    name: 'RichText',
-    components: {
-      CKEditor: clientInfo.CKEditor.component,
-    },
-    data() {
-      return {
-        editor: clientInfo.BalloonBuildEditor,
-        editorData: '<p>Content of the editor.</p>',
-        editorConfig: {
-          // The configuration of the editor.
-        },
-      }
-    },
-  }
+import { madeClient } from '~/components/bases/rich-text/made-client'
+const clientInfo = madeClient()
+export default {
+  name: 'RichText',
+  components: {
+    CKEditor: clientInfo.CKEditor.component,
+  },
+  data() {
+    return {
+      editor: clientInfo.BalloonBuildEditor,
+      editorData: '<p>Content of the editor.</p>',
+      editorConfig: {
+        // The configuration of the editor.
+      },
+    }
+  },
+}
 </script>
 
 <style scoped lang="scss"></style>

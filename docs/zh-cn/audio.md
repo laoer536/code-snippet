@@ -9,15 +9,21 @@ title: 'audio'
 ```js
 //commonjs
 /**
-* 时间过滤器, 将10.123格式的秒钟，默认转换成00:00:00格式
-* @param {Number} seconds 总时间，单位是s
-* @param {Boolean} flag 若为true，则转为00:00:00.000格式
-* @returns {String}
-*/
+ * 时间过滤器, 将10.123格式的秒钟，默认转换成00:00:00格式
+ * @param {Number} seconds 总时间，单位是s
+ * @param {Boolean} flag 若为true，则转为00:00:00.000格式
+ * @returns {String}
+ */
 export const timeFormat = (seconds, flag = false) => {
-  const hour = Math.floor(seconds / 3600) >= 10 ? Math.floor(seconds / 3600) : '0' + Math.floor(seconds / 3600)
+  const hour =
+    Math.floor(seconds / 3600) >= 10
+      ? Math.floor(seconds / 3600)
+      : '0' + Math.floor(seconds / 3600)
   seconds -= 3600 * hour
-  const min = Math.floor(seconds / 60) >= 10 ? Math.floor(seconds / 60) : '0' + Math.floor(seconds / 60)
+  const min =
+    Math.floor(seconds / 60) >= 10
+      ? Math.floor(seconds / 60)
+      : '0' + Math.floor(seconds / 60)
   seconds -= 60 * min
   if (flag) {
     seconds = seconds.toFixed(3)
@@ -49,7 +55,9 @@ export const timestampFormat = (strTime) => {
  * */
 
 export const dateFormat = (type, val) => {
-  const date = val ? new Date(/^[0-9]*$/g.test(val) ? Number(val) : val) : new Date()
+  const date = val
+    ? new Date(/^[0-9]*$/g.test(val) ? Number(val) : val)
+    : new Date()
   const YYYY = String(date.getFullYear())
   const YY = String(date.getFullYear()).substr(2)
   const m = date.getMonth() + 1
@@ -63,7 +71,10 @@ export const dateFormat = (type, val) => {
   const s = date.getSeconds()
   const ss = s > 9 ? String(s) : '0' + s
   const obj = { YYYY, YY, MM, DD, hh, mm, ss }
-  return type.replace(/(YYYY)|(YY)|(MM)|(DD)|(hh)|(mm)|(ss)/g, (key) => obj[key])
+  return type.replace(
+    /(YYYY)|(YY)|(MM)|(DD)|(hh)|(mm)|(ss)/g,
+    (key) => obj[key],
+  )
 }
 ```
 
@@ -73,7 +84,10 @@ export const dateFormat = (type, val) => {
     <audio ref="my-audio" class="audio-element" :src="audioUrl"></audio>
     <!--进度条-->
     <div class="process-container">
-      <div class="process-value" :style="{ width: (currentTime / totalTime) * 100 + '%' }"></div>
+      <div
+        class="process-value"
+        :style="{ width: (currentTime / totalTime) * 100 + '%' }"
+      ></div>
     </div>
     <div class="control-container">
       <div class="time">
@@ -113,7 +127,13 @@ export const dateFormat = (type, val) => {
         />
       </div>
       <div class="other">
-        <el-popover placement="top" title="" width="70" trigger="click" popper-class="audio-speed-popover">
+        <el-popover
+          placement="top"
+          title=""
+          width="70"
+          trigger="click"
+          popper-class="audio-speed-popover"
+        >
           <button slot="reference" class="speed">
             <span>{{ curSpeed.toFixed(1) }}x</span>
           </button>
@@ -129,7 +149,13 @@ export const dateFormat = (type, val) => {
             </div>
           </div>
         </el-popover>
-        <el-popover placement="top" title="" width="120" trigger="click" popper-class="mute-control-popover">
+        <el-popover
+          placement="top"
+          title=""
+          width="120"
+          trigger="click"
+          popper-class="mute-control-popover"
+        >
           <button slot="reference" class="mute-control">
             <img src="@/assets/img/speech-tran/audio-bar/not-mute.png" alt="" />
           </button>
@@ -216,7 +242,7 @@ export default {
             }
           }
         },
-        { signal: this.abortController.signal }
+        { signal: this.abortController.signal },
       )
     },
     play() {
@@ -243,7 +269,7 @@ export default {
 </script>
 
 <style lang="scss">
-.el-popper{
+.el-popper {
   &.audio-speed-popover {
     .speed-content {
       & > div {
@@ -400,4 +426,3 @@ export default {
 }
 </style>
 ```
-

@@ -20,7 +20,7 @@ import { requestConfig } from './config.js'
 
 const baseRequest = (method, url, data, otherConfig) => {
   const { baseUrl, timeout } = requestConfig
-  const otherHeader = otherConfig.header||{}
+  const otherHeader = otherConfig.header || {}
   return new Promise((resolve, reject) => {
     uni.request({
       ...otherConfig,
@@ -31,7 +31,7 @@ const baseRequest = (method, url, data, otherConfig) => {
       header: {
         Authorization: `Bearer ${uni.getStorageSync('token')}`,
         Entry: '1',
-        ...otherHeader
+        ...otherHeader,
       },
       success: (res) => {
         if (res.statusCode === 401) {
@@ -65,13 +65,13 @@ const baseRequest = (method, url, data, otherConfig) => {
 }
 
 const request = {
-  get: (url, data, otherConfig={}) =>
+  get: (url, data, otherConfig = {}) =>
     baseRequest('GET', url, data, otherConfig),
-  post: (url, data, otherConfig={}) =>
+  post: (url, data, otherConfig = {}) =>
     baseRequest('POST', url, data, otherConfig),
-  put: (url, data, otherConfig={}) =>
+  put: (url, data, otherConfig = {}) =>
     baseRequest('PUT', url, data, otherConfig),
-  delete: (url, data, otherConfig={}) =>
+  delete: (url, data, otherConfig = {}) =>
     baseRequest('DELETE', url, data, otherConfig),
 }
 

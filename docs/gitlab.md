@@ -9,14 +9,14 @@ title: 'gitlab'
 > Note: use gitlab-runner Windows version. Convenient to use built-in commands.
 
 ```yaml
-  stages:
-    - deploy
+stages:
+  - deploy
 
-  部署:
-    stage: deploy
-    only:
-      - main
-    script:
-      - pnpm i
-      - pnpm release:local
+部署:
+  stage: deploy
+  only:
+    - main
+  script:
+    - pnpm i
+    - pnpm release:local
 ```

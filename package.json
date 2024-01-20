@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "prettier": "^3.2.4",
     "vitepress": "1.0.0-rc.25"
   },
   "scripts": {
