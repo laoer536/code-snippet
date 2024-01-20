@@ -50,7 +50,10 @@ export default defineConfig({
       {
         text: 'html',
         // collapsed:true,
-        items: [{ text: 'audio', link: '/audio' }],
+        items: [
+          { text: 'audio', link: '/audio' },
+          { text: 'dark-mode', link: '/dark-mode' },
+        ],
       },
       {
         text: 'frame',
