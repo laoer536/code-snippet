@@ -45,7 +45,7 @@ export const timestampFormat = (strTime) => {
     const hour = Number(arr[0]) * 3600
     const min = Number(arr[1]) * 60
     const sec = Number(arr[2].replace(',', '.'))
-    return NP.plus(hour, min, sec)
+    return hour * 60 * 60 + min * 60 + sec
   }
 }
 
