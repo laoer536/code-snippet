@@ -18,5 +18,5 @@ stages:
     - main
   script:
     - pnpm i
-    - pnpm release:local
+    - pnpm release:local # 参考：https://github.com/laoer536/vite3.0-react18-TypeScript-router-dom6-mobx6-Eslint-prettier-template
 ```
