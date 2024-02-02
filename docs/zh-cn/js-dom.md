@@ -252,3 +252,24 @@ document.getElementById('change').addEventListener('click', () => {
 当你点击“添加子元素”按钮时，将向目标元素中添加一个新的`<p>`元素，观察器会检测到`childList`变化并在控制台中记录。当你点击“改变文本”按钮时，目标元素的文本内容会改变，观察器会检测到`characterData`变化并记录到控制台。
 
 请注意，为了使这个示例工作，你需要将HTML和JavaScript代码保存到本地文件中，并在支持JavaScript的Web浏览器中打开HTML文件。
+
+## Event-keydown demo
+
+```js
+document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey && document.activeElement.tagName === 'BODY') {
+          if (event.key === 'z' || event.key === 'Z') {
+            event.preventDefault()
+            if (event.shiftKey) {
+              // ctrl + z
+            } else {
+              // ctrl + shift + z
+            }
+          }
+          if (event.key === 's' || event.key === 'S') {
+            event.preventDefault()
+            // ctrl + s
+          }
+        }
+      })
+```
