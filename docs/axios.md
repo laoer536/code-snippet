@@ -256,6 +256,9 @@ export function download(url, data) {
     x.setRequestHeader('Authorization', `Bearer ${TOKEN}`)
     x.setRequestHeader('Content-Type', 'application/json')
     x.onload = () => {
+      if (!x.status.toString().startsWith('2')) {
+        return reject(x.response)
+      }
       const url = window.URL.createObjectURL(x.response)
       const a = document.createElement('a')
       a.href = url
