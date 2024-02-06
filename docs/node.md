@@ -5,9 +5,9 @@ title: 'node'
 
 # Node
 
-## Example of internationalization insertion script
+## Example of internationalization insertion script （ React version ）
 
-> FYI, the replacement is capable of handling most real-world scenarios (>=95%), depending on the replacement location, which may also require manual adjustments.
+> FYI, the replacement is capable of handling most real-world scenarios (>=95%), and may require manual fine-tuning depending on the scene where the replacement is placed.
 
 ```js
 import { readFileSync, writeFileSync } from 'node:fs'
