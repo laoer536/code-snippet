@@ -56,6 +56,13 @@ export default defineConfig({
         ],
       },
       {
+        text: 'node',
+        // collapsed:true,
+        items: [
+          { text: 'node', link: '/node' },
+        ],
+      },
+      {
         text: 'frame',
         // collapsed:true,
         items: [
