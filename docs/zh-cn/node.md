@@ -84,3 +84,28 @@ function i18nReplace(info) {
   writeFileSync(info.path, code, 'utf8')
 }
 ```
+
+## 读取项目文件（可配置）
+
+```js
+const fs = require('fs')
+const path = require('path')
+
+const projectPath = './' // 项目根目录
+const ignoreDirs = ['node_modules', '.nuxt', 'assets', 'api', 'locales'] // 忽略的目录
+const ignoreFiles = ['i18n.js'] // 忽略的文件
+const fileRegex = /\.(js|jsx|ts|tsx|vue)$/ // 需要搜索的文件类型
+
+function work(dir,doSomething) {
+  const files = fs.readdirSync(dir)
+  for (const file of files) {
+    const fullPath = path.join(dir, file)
+    const stat = fs.statSync(fullPath)
+    if (stat.isDirectory() && !ignoreDirs.includes(file)) {
+      walkDir(fullPath)
+    } else if (stat.isFile() && !ignoreFiles.includes(file) && fileRegex.test(file)) {
+      doSomething && doSomething(fullPath)
+    }
+  }
+}
+```

@@ -84,3 +84,28 @@ function i18nReplace(info) {
   writeFileSync(info.path, code, 'utf8')
 }
 ```
+
+## Reading Project Files (Configurable)
+
+```js
+const fs = require('fs')
+const path = require('path')
+
+const projectPath = './' // The root directory of the project
+const ignoreDirs = ['node_modules', '.nuxt', 'assets', 'api', 'locales'] // Ignored directories
+const ignoreFiles = ['i18n.js'] // Ignored files
+const fileRegex = /\.(js|jsx|ts|tsx|vue)$/ // The type of file that needs to be searched
+
+function work(dir,doSomething) {
+  const files = fs.readdirSync(dir)
+  for (const file of files) {
+    const fullPath = path.join(dir, file)
+    const stat = fs.statSync(fullPath)
+    if (stat.isDirectory() && !ignoreDirs.includes(file)) {
+      walkDir(fullPath)
+    } else if (stat.isFile() && !ignoreFiles.includes(file) && fileRegex.test(file)) {
+      doSomething && doSomething(fullPath)
+    }
+  }
+}
+```
