@@ -96,7 +96,7 @@ const ignoreDirs = ['node_modules', '.nuxt', 'assets', 'api', 'locales'] // Igno
 const ignoreFiles = ['i18n.js'] // Ignored files
 const fileRegex = /\.(js|jsx|ts|tsx|vue)$/ // The type of file that needs to be searched
 
-function work(dir,doSomething) {
+function walkDir(dir,doSomething) {
   const files = fs.readdirSync(dir)
   for (const file of files) {
     const fullPath = path.join(dir, file)
