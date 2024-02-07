@@ -81,6 +81,16 @@ function i18nReplace(info) {
   for (const key in i18nObj) {
     code = code.replaceAll(i18nObj[key], `{t['${key}']}`)
   }
+  // if vue
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(`'${i18nObj[key]}'`, `"$t['${key}']"`)
+  // }
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(`"${i18nObj[key]}"`, `"$t['${key}']"`)
+  // }
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(i18nObj[key], `{{t['${key}']}}`)
+  // }
   writeFileSync(info.path, code, 'utf8')
 }
 ```
@@ -96,7 +106,7 @@ const ignoreDirs = ['node_modules', '.nuxt', 'assets', 'api', 'locales'] // 忽�
 const ignoreFiles = ['i18n.js'] // 忽略的文件
 const fileRegex = /\.(js|jsx|ts|tsx|vue)$/ // 需要搜索的文件类型
 
-function work(dir,doSomething) {
+function walkDir(dir,doSomething) {
   const files = fs.readdirSync(dir)
   for (const file of files) {
     const fullPath = path.join(dir, file)

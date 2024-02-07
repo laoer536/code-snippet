@@ -81,6 +81,17 @@ function i18nReplace(info) {
   for (const key in i18nObj) {
     code = code.replaceAll(i18nObj[key], `{t['${key}']}`)
   }
+
+  // if vue
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(`'${i18nObj[key]}'`, `"$t['${key}']"`)
+  // }
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(`"${i18nObj[key]}"`, `"$t['${key}']"`)
+  // }
+  // for (const key in i18nObj) {
+  //   code = code.replaceAll(i18nObj[key], `{{t['${key}']}}`)
+  // }
   writeFileSync(info.path, code, 'utf8')
 }
 ```
