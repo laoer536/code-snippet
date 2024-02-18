@@ -704,3 +704,220 @@ Event Bus 是一个全局事件对象，可以用于非父子组件之间的通�
 - **学习曲线**：虚拟DOM和相关框架的概念需要时间去学习和理解。
 
 虚拟DOM是现代前端框架（如React、Vue和Inferno）的核心概念之一，它极大地改善了开发体验和应用性能。
+
+## 修饰符
+
+Vue 3 支持一系列的修饰符，用于在模板中指定 DOM 事件或者绑定属性时提供额外的指令。以下是一些常用的修饰符：
+
+1. 事件修饰符：
+
+   - `.stop` - 调用 `event.stopPropagation()` 阻止事件冒泡。
+   - `.prevent` - 调用 `event.preventDefault()` 阻止默认事件行为。
+   - `.capture` - 使用事件捕获模式。
+   - `.self` - 只当事件是从事件绑定的元素本身触发时才触发回调。
+   - `.once` - 事件只触发一次。
+   - `.passive` - 表示不会调用 `event.preventDefault()`。
+
+2. 键盘事件修饰符：
+
+   - `.enter`
+   - `.tab`
+   - `.delete` (捕获 "删除" 和 "退格" 键)
+   - `.esc`
+   - `.space`
+   - `.up`
+   - `.down`
+   - `.left`
+   - `.right`
+
+3. 鼠标按钮修饰符：
+
+   - `.left`
+   - `.right`
+   - `.middle`
+
+4. 系统修饰键：
+
+   - `.ctrl`
+   - `.alt`
+   - `.shift`
+   - `.meta` (在 Mac 键盘上是 Command 键，在 Windows 键盘上是 Windows 键)
+
+5. 修饰符键组合：
+
+   - `.exact` - 控制其他修饰键必须与 `.ctrl`、`.alt`、`.shift`、`.meta` 结合精确匹配。
+
+6. `.lazy` - 在 `v-model` 中使用，将数据同步改为在 "change" 事件后进行，而不是每次输入后。
+
+7. `.number` - 在 `v-model` 中使用，自动将用户的输入值转为数值类型。
+
+8. `.trim` - 在 `v-model` 中使用，自动过滤用户输入的首尾空白字符。
+
+下面是一些使用这些修饰符的代码示例：
+
+```html
+<template>
+  <!-- 阻止事件冒泡 -->
+  <button @click.stop="doThis">Stop Propagation</button>
+
+  <!-- 提交事件不再重载页面 -->
+  <form @submit.prevent="onSubmit">...</form>
+
+  <!-- 修饰符链 -->
+  <input @keyup.enter="onEnter" />
+
+  <!-- 键盘事件 -->
+  <input @keyup.page-down="onPageDown" />
+
+  <!-- 只有在点击了元素本身时才会触发处理函数 -->
+  <div @click.self="doThat">...</div>
+
+  <!-- 使用 capture 模式 -->
+  <div @click.capture="doThis">...</div>
+
+  <!-- 只触发一次事件 -->
+  <button @click.once="doThis">Click me once</button>
+
+  <!-- 使用系统修饰键 -->
+  <input @keyup.ctrl.enter="onCtrlEnter" />
+
+  <!-- 使用 .exact 修饰符 -->
+  <button @click.ctrl.exact="onCtrlClick">A</button>
+  <button @click.exact="onClick">B</button>
+
+  <!-- 使用 v-model 修饰符 -->
+  <input v-model.lazy="msg" />
+  <input v-model.number="age" type="number" />
+  <input v-model.trim="msg" />
+</template>
+
+<script>
+  export default {
+    methods: {
+      doThis() {
+        // ...
+      },
+      onSubmit() {
+        // ...
+      },
+      onEnter() {
+        // ...
+      },
+      onPageDown() {
+        // ...
+      },
+      doThat() {
+        // ...
+      },
+      onCtrlEnter() {
+        // ...
+      },
+      onCtrlClick() {
+        // ...
+      },
+      onClick() {
+        // ...
+      },
+    },
+    data() {
+      return {
+        msg: '',
+        age: 0,
+      }
+    },
+  }
+</script>
+```
+
+请注意，Vue 3 中的修饰符可以链式调用，也就是说你可以在同一个事件上使用多个修饰符。例如，`@click.stop.prevent` 会同时阻止冒泡和默认行为。修饰符的顺序也是有关系的，它们会按照你使用的顺序依次应用。
+
+### exact修饰符作用
+
+`exact` 修饰符是 Vue.js 中的一个事件修饰符，它用于控制触发事件处理器的确切方式。当你使用系统修饰键（如 `ctrl`、`alt`、`shift`、`meta`）作为事件修饰符时，`exact` 修饰符可以确保只有在指定的系统修饰键被精确按下时，事件处理器才会被触发。
+
+在没有 `exact` 修饰符的情况下，如果你监听带有系统修饰键的事件，如 `@click.ctrl`，那么无论是否有其他修饰键被按下，只要 `ctrl` 键被按下，事件处理器都会被触发。这可能不是你想要的行为，特别是当你想要区分不同修饰键组合的时候。
+
+使用 `exact` 修饰符，你可以要求事件处理器只在没有其他修饰键被按下的情况下，或者是精确匹配你指定的修饰键组合时才触发。
+
+下面是一些使用 `exact` 修饰符的例子：
+
+```html
+<template>
+  <!-- 只有当仅仅按下 Ctrl 键时才触发 -->
+  <button @click.ctrl.exact="onCtrlClick">Ctrl Click</button>
+
+  <!-- 只有当没有任何修饰键被按下时才触发 -->
+  <button @click.exact="onClick">Click without Modifiers</button>
+
+  <!-- 只有当 Ctrl 和 Shift 被同时按下时才触发 -->
+  <button @click.ctrl.shift.exact="onCtrlShiftClick">Ctrl+Shift Click</button>
+</template>
+
+<script>
+  export default {
+    methods: {
+      onCtrlClick() {
+        console.log('Ctrl Click')
+      },
+      onClick() {
+        console.log('Click without any modifiers')
+      },
+      onCtrlShiftClick() {
+        console.log('Ctrl+Shift Click')
+      },
+    },
+  }
+</script>
+```
+
+在这个例子中：
+
+- 第一个按钮只有在按下 `Ctrl` 键而没有按下其他修饰键时才会触发 `onCtrlClick` 方法。
+- 第二个按钮只有在没有任何修饰键被按下时才会触发 `onClick` 方法。
+- 第三个按钮只有在同时按下 `Ctrl` 和 `Shift` 键时才会触发 `onCtrlShiftClick` 方法。
+
+`exact` 修饰符提供了更精确的控制，使得你可以根据用户的确切按键组合来决定是否触发某个事件处理器。
+
+### @click.ctrl.shift.exact和@keyup.ctrl.shift.exact有什么区别
+
+`@click.ctrl.shift.exact` 和 `@keyup.ctrl.shift.exact` 都是 Vue.js 中的事件监听表达式，它们结合了多个修饰符来指定事件触发的条件。尽管它们使用了相同的修饰符组合（`ctrl`、`shift` 和 `exact`），但它们应用于不同类型的事件，并且有不同的触发时机和用途。
+
+1. `@click.ctrl.shift.exact`：
+
+   - 这个表达式用于监听鼠标点击事件 (`click`)。
+   - 它要求用户在点击时必须同时按住 `Ctrl` 和 `Shift` 键，没有其他键被按下。
+   - `exact` 修饰符确保只有在精确匹配这个修饰键组合时，事件处理函数才会被触发。
+   - 这通常用于鼠标点击操作，当你想要对特定的键盘修饰键组合做出响应时。
+
+2. `@keyup.ctrl.shift.exact`：
+   - 这个表达式用于监听键盘按键释放事件 (`keyup`)。
+   - 它要求用户在释放键盘上的一个键时必须同时按住 `Ctrl` 和 `Shift` 键，没有其他键被按下。
+   - `exact` 修饰符同样确保只有在精确匹配这个修饰键组合时，事件处理函数才会被触发。
+   - 这通常用于键盘输入操作，特别是当你想要在用户完成特定的键盘快捷操作后执行某些动作时。
+
+下面是两个修饰符表达式的示例代码：
+
+```html
+<template>
+  <!-- 只有当用户点击按钮的同时按住 Ctrl 和 Shift 键时才会触发 -->
+  <button @click.ctrl.shift.exact="onCtrlShiftClick">Ctrl+Shift Click</button>
+
+  <!-- 只有当用户在输入框中按下并释放键盘上的一个键的同时按住 Ctrl 和 Shift 键时才会触发 -->
+  <input @keyup.ctrl.shift.exact="onCtrlShiftKeyup" />
+</template>
+
+<script>
+  export default {
+    methods: {
+      onCtrlShiftClick() {
+        console.log('Button clicked with Ctrl+Shift keys')
+      },
+      onCtrlShiftKeyup() {
+        console.log('Key released with Ctrl+Shift keys in input')
+      },
+    },
+  }
+</script>
+```
+
+在这个例子中，`onCtrlShiftClick` 方法只会在用户点击按钮的同时精确按住 `Ctrl` 和 `Shift` 键时被调用，而 `onCtrlShiftKeyup` 方法只会在用户在输入框中释放键盘上的一个键的同时精确按住 `Ctrl` 和 `Shift` 键时被调用。其他任何键盘修饰键的组合都不会触发这些方法。
