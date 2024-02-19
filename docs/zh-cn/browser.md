@@ -712,3 +712,173 @@ Expires: Wed, 21 Oct 2020 07:28:00 GMT
 - 使用版本控制（如文件名中包含哈希值）可以有效管理缓存。
 
 总之，前端可以通过合理配置HTTP缓存头部来控制浏览器缓存，从而优化应用的性能和用户体验。
+
+## cookie
+
+### cookie共享原则
+
+Cookie 的共享原则主要受以下因素的影响：
+
+1. **域名（Domain）**：
+
+- Cookie 通常只能由设置它们的域名访问。例如，如果一个 Cookie 被 `example.com` 设置，那么只有来自 `example.com` 的请求才能访问这个 Cookie。
+- 子域可以通过设置 Cookie 的 `Domain` 属性来共享 Cookie。例如，如果一个 Cookie 设置了 `Domain=.example.com`，那么 `sub.example.com` 和 `another.example.com` 都可以访问这个 Cookie。
+- 不同的顶级域名之间不能共享 Cookie。例如，`example.com` 不能访问 `anotherdomain.com` 设置的 Cookie。
+
+2. **路径（Path）**：
+
+- Cookie 的 `Path` 属性可以限制 Cookie 只能被特定路径下的页面访问。例如，如果一个 Cookie 设置了 `Path=/blog`，那么只有 URL 路径以 `/blog` 开头的页面可以访问这个 Cookie。
+- 如果没有指定 `Path`，默认情况下，Cookie 对于设置它的那个路径及其子路径都是可见的。
+
+3. **安全协议（Secure）**：
+
+- 如果 Cookie 设置了 `Secure` 属性，那么这个 Cookie 只能通过 HTTPS 协议传输。这意味着在 HTTP 上，这个 Cookie 是不可见的，有助于保护数据免受中间人攻击。
+
+4. **HttpOnly**：
+
+- 设置了 `HttpOnly` 属性的 Cookie 不能通过 JavaScript 的 `document.cookie` API 访问，它们只能由服务器通过 HTTP 请求访问。这有助于减少跨站脚本攻击（XSS）的风险。
+
+5. **SameSite**：
+
+- `SameSite` 属性用于控制 Cookie 是否应该在跨站请求中发送。它有三个值：`Strict`、`Lax` 和 `None`。
+- `SameSite=Strict` 表示 Cookie 只能在同一站点的请求中发送。
+- `SameSite=Lax` 允许在顶级导航时将 Cookie 发送到其他站点，但在其他类型的跨站子请求中不会发送。
+- `SameSite=None` 必须与 `Secure` 属性一起使用，它允许 Cookie 在跨站请求中发送。
+
+6. **跨域资源共享（CORS）**：
+
+- 即使 Cookie 被设置为跨子域共享，跨域 AJAX 请求也需要遵守 CORS 策略。如果没有适当的 CORS 响应头，浏览器不会将 Cookie 包含在请求中。
+
+7. **用户的浏览器设置**：
+
+- 用户可以在浏览器设置中指定对 Cookie 的偏好，包括阻止来自第三方的 Cookie 或完全禁用 Cookie。
+
+8. **法律法规**：
+
+- 根据地区的不同，可能有法律要求网站在存储或共享 Cookie 之前获取用户的同意。例如，欧盟的通用数据保护条例（GDPR）和电子隐私指令（ePrivacy Directive）。
+
+理解和遵守这些原则对于确保 Cookie 的正确使用和用户隐私的保护至关重要。开发者应当在设计应用程序时考虑到这些因素，以确保遵守相关的安全和隐私最佳实践。
+
+### 对比`localStorage`
+
+Cookies 和 localStorage 都是在浏览器中存储数据的方式，但它们的共享原则和用途有所不同。
+
+### Cookies 的共享原则：
+
+1. **域名限制**：Cookies 与特定的域名绑定，只有创建它们的域名可以访问和修改。
+2. **路径限制**：可以为 Cookies 设置路径（path），使得只有匹配该路径的页面才能访问这些 Cookies。
+3. **跨域共享**：默认情况下，Cookies 不会被包含在跨域请求中，除非使用了特定的设置（如设置 `withCredentials` 属性）。
+4. **大小限制**：Cookies 的大小通常限制在4KB左右。
+5. **数量限制**：每个域名下的 Cookies 数量也有限制，不同的浏览器可能有不同的限制。
+6. **过期时间**：Cookies 可以设置过期时间，到期后会自动删除。
+7. **发送到服务器**：每次对服务器发起请求时，Cookies 都会被自动包含在请求头中，这可能会影响性能，尤其是在移动网络环境下。
+
+### localStorage 的共享原则：
+
+1. **域名限制**：localStorage 数据只能被同源的页面访问（即相同的协议、域名和端口）。
+2. **无路径限制**：localStorage 不像 Cookies 那样有路径限制，同源的任何页面都可以访问存储的数据。
+3. **不跨域共享**：localStorage 数据不能被跨域的网页访问。
+4. **大小限制**：localStorage 的大小限制比 Cookies 大得多，通常在5MB左右。
+5. **无数量限制**：localStorage 没有每个域名下的数据项数量限制，但总体容量受限。
+6. **无过期时间**：localStorage 中的数据没有过期时间，数据会一直保存到用户或者网站显式地清除它。
+7. **不发送到服务器**：localStorage 中的数据不会随着每个服务器请求被发送，因此不会影响网络性能。
+
+总结来说，Cookies 主要用于读写需要随请求发送到服务器的少量数据，而 localStorage 适用于在客户端存储较大量的数据，这些数据不需要经常发送到服务器。Cookies 可以设置过期时间，而 localStorage 数据则会一直保留直到被清除。Cookies 可以通过设置路径来限制访问范围，而 localStorage 则对所有同源页面可见。
+
+### 设置 Domain 的 demo
+
+在设置 Cookie 值时，可以通过 `Domain` 属性指定 Cookie 应该发送到哪些域。这个属性定义了 Cookie 的作用域，即哪些域可以接收和发送这个 Cookie。如果没有指定 `Domain` 属性，Cookie 默认只会发送到创建它的服务器。
+
+以下是如何在不同环境中设置 `Domain` 属性的示例：
+
+#### 在服务器端设置 Cookie 的 `Domain`
+
+当你在服务器端设置 Cookie 时，通常会使用 `Set-Cookie` HTTP 响应头。例如，在 Node.js 中，你可以这样设置：
+
+```javascript
+res.setHeader(
+  'Set-Cookie',
+  'cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly',
+)
+```
+
+在这个例子中，`cookieName` 是 Cookie 的名称，`cookieValue` 是 Cookie 的值，`Domain=example.com` 指定了 Cookie 的作用域。这意味着，只有从 `example.com` 域（包括其子域）发出的请求才会包含这个 Cookie。
+
+#### 在客户端 JavaScript 中设置 Cookie 的 `Domain`
+
+在客户端 JavaScript 中，你可以使用 `document.cookie` 来设置 Cookie，包括 `Domain` 属性：
+
+```javascript
+document.cookie = 'cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly'
+```
+
+请注意，出于安全原因，浏览器通常会限制在客户端设置 `Domain` 属性。如果你尝试在客户端为一个不同的域（与当前页面域不匹配）设置 Cookie，浏览器可能会忽略这个设置。因此，通常建议在服务器端设置 `Domain` 属性。
+
+#### 使用第三方库设置 Cookie 的 `Domain`
+
+如果你在客户端使用第三方库（如 `js-cookie`）来处理 Cookie，你可以这样设置 `Domain` 属性：
+
+```javascript
+import Cookies from 'js-cookie'
+
+Cookies.set('cookieName', 'cookieValue', {
+  domain: 'example.com',
+  path: '/',
+  secure: true,
+})
+```
+
+在这个例子中，`domain` 选项用于设置 `Domain` 属性。
+
+#### 注意事项
+
+- 设置 `Domain` 属性时，如果指定了一个域（如 `example.com`），则该 Cookie 也会被其所有子域（如 `sub.example.com`）访问。
+- 如果你想要 Cookie 仅限于当前的子域，那么不要设置 `Domain` 属性，或者将其设置为当前的子域（如 `sub.example.com`）。
+- 请确保在设置 `Domain` 属性时遵守同源策略和 Cookie 的安全最佳实践，以防止潜在的安全问题。
+
+总之，`Domain` 属性是一个重要的 Cookie 属性，它决定了 Cookie 的发送范围。在设置 Cookie 时，应根据应用的需求和安全考虑来正确设置 `Domain` 属性。
+
+#### cookie `Domain=example.com` 和 `Domain=.example.com` 区别
+
+在设置 Cookie 的 `Domain` 属性时，`example.com` 和 `.example.com` 之间的区别在于它们指定的域的范围，尤其是关于子域的包含性。
+
+- `Domain=example.com`：这种设置意味着 Cookie 仅会被发送到精确匹配 `example.com` 的域。根据不同浏览器的实现，这可能不包括 `example.com` 的子域，如 `sub.example.com`。
+
+- `Domain=.example.com`：以点（`.`）开头的设置表示 Cookie 对 `example.com` 及其所有子域都有效。这意味着，无论是 `example.com` 还是 `sub.example.com`，或者是 `another.sub.example.com`，都会发送这个 Cookie。
+
+在现代浏览器中，设置 `Domain=example.com` 通常会被解释为 `.example.com`（隐式包含子域）。然而，为了保证兼容性和明确性，如果你希望 Cookie 在主域及其所有子域上都有效，建议显式地设置 `Domain=.example.com`。
+
+请注意，Cookie 的 `Domain` 属性必须是设置 Cookie 的服务器的域的一部分。例如，如果你的服务器是 `api.example.com`，你不能为 `anotherdomain.com` 设置 Cookie。这是由于浏览器的同源策略，它限制了不同域之间的某些交互，以保护用户的隐私和安全。
+
+总结一下，如果你想要 Cookie 在主域和所有子域上都有效，最好使用 `Domain=.example.com`。如果你只想要 Cookie 在主域上有效，而不考虑子域，你可以使用 `Domain=example.com`，但要注意不同浏览器可能会有不同的解释。
+
+### document.cookie设置无效原因定位
+
+如果你发现 `document.cookie` 设置无效，可能是由于以下几个原因：
+
+1. **同源策略**：出于安全考虑，浏览器实施同源策略。如果你尝试在当前页面的 JavaScript 中设置属于另一个域的 Cookie，这将不被允许。
+
+2. **Cookie 属性**：设置 Cookie 时，某些属性可能会导致设置失败，例如 `Domain`、`Path`、`Secure`、`HttpOnly` 和 `SameSite`。确保这些属性与当前页面的上下文相匹配。例如，如果你设置了 `Secure` 属性，但是你的页面不是通过 HTTPS 提供的，那么 Cookie 设置将不会成功。
+
+3. **过期时间**：如果设置了过去的时间作为 Cookie 的 `Expires` 或 `Max-Age` 属性，Cookie 将会立即过期，因此看起来像是没有设置成功。
+
+4. **浏览器设置**：用户的浏览器设置可能会阻止 Cookie 的设置，例如，如果用户设置了浏览器以阻止第三方 Cookie 或者完全禁用了 Cookie。
+
+5. **Cookie 大小限制**：大多数浏览器对单个 Cookie 和域下所有 Cookie 的总大小都有限制。如果你尝试设置的 Cookie 超过了这些限制，设置可能会失败。
+
+6. **路径限制**：如果设置了 `Path` 属性，Cookie 只会在指定路径及其子路径下可见。如果当前页面不在该路径下，Cookie 将不会被设置。
+
+7. **HttpOnly 标志**：如果一个 Cookie 被标记为 `HttpOnly`，它将无法通过 `document.cookie` 访问或修改，因为这个标志是为了防止跨站脚本攻击（XSS）。
+
+8. **浏览器扩展或插件**：某些浏览器扩展或插件可能会干扰 Cookie 的设置。
+
+为了解决 `document.cookie` 设置无效的问题，你可以检查以下事项：
+
+- 确保你没有违反同源策略。
+- 检查你的 Cookie 字符串是否正确格式化，并且所有属性都是有效的。
+- 确保 `Expires` 或 `Max-Age` 属性设置的是未来的时间。
+- 检查浏览器的隐私设置，确保没有阻止 Cookie。
+- 确保 Cookie 的大小没有超过浏览器的限制。
+- 如果你在开发环境中遇到问题，请尝试在不同的浏览器和无痕/隐私模式下测试，以排除浏览器扩展或插件的干扰。
+
+如果你确定所有设置都是正确的，但 `document.cookie` 仍然无法设置 Cookie，你可能需要进一步调试或查看浏览器的控制台和网络请求，以获取更多关于失败原因的信息。
