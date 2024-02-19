@@ -48,6 +48,11 @@ export default defineConfig({
 
     sidebar: [
       {
+        text: 'base',
+        // collapsed:true,
+        items: [{ text: 'typescript', link: '/typescript' }],
+      },
+      {
         text: 'html',
         // collapsed:true,
         items: [
