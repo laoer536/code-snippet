@@ -1202,6 +1202,72 @@ element.addEventListener('click', function (event) {
 
 在JavaScript中，`this`关键字是一个特殊的标识符，它在函数执行时被自动设置，指向一个与执行上下文相关的对象。`this`的值取决于函数是如何被调用的，而不是如何被定义的。以下是`this`在不同场景下的指向：
 
+> 如果单个函数从某个对象上取出来时，如果这个函数内部有this，那这个this的指向就丢失了，取决于运行的上下文。所以如果要保留正确的this指向，那就不能单个函数拿出来用，需要加上对象取用。例如以下的两个结果是不同的：
+```js
+// demo.js
+
+// error demo
+export const SUBTITLE_FORMAT_OPTIONS = (i18n) => {
+  const t = i18n.t
+   // VueI18n.prototype.t = function t (key) {
+   //    var ref;
+   //
+   //    var values = [], len = arguments.length - 1;
+   //    while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
+   //    return (ref = this)._t.apply(ref, [ key, this.locale, this._getMessages(), null ].concat( values ))
+   // };
+   return [
+      {
+         value: 0,
+         label: t('constant')[0],  // error    // t函数中使用了this._t，但是在这里this的值是undefined,这里也要注意一下，无论导出的函数是普通函数还是箭头函数，只要是在任何使用了模块系统(cjs,mjs)的JavaScript环境中，顶层直接调用(函数没有被作为对象的方法调用)，指向都是undefined(默认启用严格模式)，不会受运行的上下文影响，除非对导出的普通函数使用call,bind或者apply,当然导出的箭头函数是修改不了的。
+      },
+      {
+         value: 1,
+         label: t('constant')[1], // error 
+      },
+      {
+         value: 2,
+         label: t('constant')[2], // error 
+      },
+      {
+         value: 3,
+         label: t('constant')[3], // error 
+      },
+      {
+         value: 4,
+         label: t('constant')[4], // error 
+      },
+   ]
+}
+
+// success demo
+export const SUBTITLE_FORMAT_OPTIONS2 = (i18n) => {
+  return [
+    {
+      value: 0,
+      label: i18n.t('constant')[0], // 这里t函数内部的this指向了i18n实例，正确。
+    },
+    {
+      value: 1,
+      label: i18n.t('constant')[1],
+    },
+    {
+      value: 2,
+      label: i18n.t('constant')[2],
+    },
+    {
+      value: 3,
+      label: i18n.t('constant')[3],
+    },
+    {
+      value: 4,
+      label: i18n.t('constant')[4],
+    },
+  ]
+}
+
+```
+
 ### 全局上下文
 
 在全局执行上下文中（在任何函数体外部），`this`指向全局对象。在浏览器中，全局对象是`window`，而在Node.js中，全局对象是`global`。
