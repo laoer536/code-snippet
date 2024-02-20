@@ -720,38 +720,47 @@ Expires: Wed, 21 Oct 2020 07:28:00 GMT
 Cookie 的共享原则主要受以下因素的影响：
 
 1. **域名（Domain）**：
-  - Cookie 通常只能由设置它们的域名访问。例如，如果一个 Cookie 被 `example.com` 设置，那么只有来自 `example.com` 的请求才能访问这个 Cookie。
-  - 子域可以通过设置 Cookie 的 `Domain` 属性来共享 Cookie。例如，如果一个 Cookie 设置了 `Domain=.example.com`，那么 `sub.example.com` 和 `another.example.com` 都可以访问这个 Cookie。
-  - 不同的顶级域名之间不能共享 Cookie。例如，`example.com` 不能访问 `anotherdomain.com` 设置的 Cookie。
+
+- Cookie 通常只能由设置它们的域名访问。例如，如果一个 Cookie 被 `example.com` 设置，那么只有来自 `example.com` 的请求才能访问这个 Cookie。
+- 子域可以通过设置 Cookie 的 `Domain` 属性来共享 Cookie。例如，如果一个 Cookie 设置了 `Domain=.example.com`，那么 `sub.example.com` 和 `another.example.com` 都可以访问这个 Cookie。
+- 不同的顶级域名之间不能共享 Cookie。例如，`example.com` 不能访问 `anotherdomain.com` 设置的 Cookie。
 
 2. **路径（Path）**：
-  - Cookie 的 `Path` 属性可以限制 Cookie 只能被特定路径下的页面访问。例如，如果一个 Cookie 设置了 `Path=/blog`，那么只有 URL 路径以 `/blog` 开头的页面可以访问这个 Cookie。
-  - 如果没有指定 `Path`，默认情况下，Cookie 对于设置它的那个路径及其子路径都是可见的。
+
+- Cookie 的 `Path` 属性可以限制 Cookie 只能被特定路径下的页面访问。例如，如果一个 Cookie 设置了 `Path=/blog`，那么只有 URL 路径以 `/blog` 开头的页面可以访问这个 Cookie。
+- 如果没有指定 `Path`，默认情况下，Cookie 对于设置它的那个路径及其子路径都是可见的。
 
 3. **安全协议（Secure）**：
-  - 如果 Cookie 设置了 `Secure` 属性，那么这个 Cookie 只能通过 HTTPS 协议传输。这意味着在 HTTP 上，这个 Cookie 是不可见的，有助于保护数据免受中间人攻击。
+
+- 如果 Cookie 设置了 `Secure` 属性，那么这个 Cookie 只能通过 HTTPS 协议传输。这意味着在 HTTP 上，这个 Cookie 是不可见的，有助于保护数据免受中间人攻击。
 
 4. **HttpOnly**：
-  - 设置了 `HttpOnly` 属性的 Cookie 不能通过 JavaScript 的 `document.cookie` API 访问，它们只能由服务器通过 HTTP 请求访问。这有助于减少跨站脚本攻击（XSS）的风险。
+
+- 设置了 `HttpOnly` 属性的 Cookie 不能通过 JavaScript 的 `document.cookie` API 访问，它们只能由服务器通过 HTTP 请求访问。这有助于减少跨站脚本攻击（XSS）的风险。
 
 5. **SameSite**：
-  - `SameSite` 属性用于控制 Cookie 是否应该在跨站请求中发送。它有三个值：`Strict`、`Lax` 和 `None`。
-  - `SameSite=Strict` 表示 Cookie 只能在同一站点的请求中发送。
-  - `SameSite=Lax` 允许在顶级导航时将 Cookie 发送到其他站点，但在其他类型的跨站子请求中不会发送。
-  - `SameSite=None` 必须与 `Secure` 属性一起使用，它允许 Cookie 在跨站请求中发送。
+
+- `SameSite` 属性用于控制 Cookie 是否应该在跨站请求中发送。它有三个值：`Strict`、`Lax` 和 `None`。
+- `SameSite=Strict` 表示 Cookie 只能在同一站点的请求中发送。
+- `SameSite=Lax` 允许在顶级导航时将 Cookie 发送到其他站点，但在其他类型的跨站子请求中不会发送。
+- `SameSite=None` 必须与 `Secure` 属性一起使用，它允许 Cookie 在跨站请求中发送。
 
 6. **跨域资源共享（CORS）**：
-  - 即使 Cookie 被设置为跨子域共享，跨域 AJAX 请求也需要遵守 CORS 策略。如果没有适当的 CORS 响应头，浏览器不会将 Cookie 包含在请求中。
+
+- 即使 Cookie 被设置为跨子域共享，跨域 AJAX 请求也需要遵守 CORS 策略。如果没有适当的 CORS 响应头，浏览器不会将 Cookie 包含在请求中。
 
 7. **用户的浏览器设置**：
-  - 用户可以在浏览器设置中指定对 Cookie 的偏好，包括阻止来自第三方的 Cookie 或完全禁用 Cookie。
+
+- 用户可以在浏览器设置中指定对 Cookie 的偏好，包括阻止来自第三方的 Cookie 或完全禁用 Cookie。
 
 8. **法律法规**：
-  - 根据地区的不同，可能有法律要求网站在存储或共享 Cookie 之前获取用户的同意。例如，欧盟的通用数据保护条例（GDPR）和电子隐私指令（ePrivacy Directive）。
+
+- 根据地区的不同，可能有法律要求网站在存储或共享 Cookie 之前获取用户的同意。例如，欧盟的通用数据保护条例（GDPR）和电子隐私指令（ePrivacy Directive）。
 
 理解和遵守这些原则对于确保 Cookie 的正确使用和用户隐私的保护至关重要。开发者应当在设计应用程序时考虑到这些因素，以确保遵守相关的安全和隐私最佳实践。
 
-### 对比
+### 对比`localStorage`
+
 Cookies 和 localStorage 都是在浏览器中存储数据的方式，但它们的共享原则和用途有所不同。
 
 ### Cookies 的共享原则：
@@ -777,6 +786,7 @@ Cookies 和 localStorage 都是在浏览器中存储数据的方式，但它们�
 总结来说，Cookies 主要用于读写需要随请求发送到服务器的少量数据，而 localStorage 适用于在客户端存储较大量的数据，这些数据不需要经常发送到服务器。Cookies 可以设置过期时间，而 localStorage 数据则会一直保留直到被清除。Cookies 可以通过设置路径来限制访问范围，而 localStorage 则对所有同源页面可见。
 
 ### 设置 Domain 的 demo
+
 在设置 Cookie 值时，可以通过 `Domain` 属性指定 Cookie 应该发送到哪些域。这个属性定义了 Cookie 的作用域，即哪些域可以接收和发送这个 Cookie。如果没有指定 `Domain` 属性，Cookie 默认只会发送到创建它的服务器。
 
 以下是如何在不同环境中设置 `Domain` 属性的示例：
@@ -786,7 +796,10 @@ Cookies 和 localStorage 都是在浏览器中存储数据的方式，但它们�
 当你在服务器端设置 Cookie 时，通常会使用 `Set-Cookie` HTTP 响应头。例如，在 Node.js 中，你可以这样设置：
 
 ```javascript
-res.setHeader('Set-Cookie', 'cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly');
+res.setHeader(
+  'Set-Cookie',
+  'cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly',
+)
 ```
 
 在这个例子中，`cookieName` 是 Cookie 的名称，`cookieValue` 是 Cookie 的值，`Domain=example.com` 指定了 Cookie 的作用域。这意味着，只有从 `example.com` 域（包括其子域）发出的请求才会包含这个 Cookie。
@@ -796,7 +809,7 @@ res.setHeader('Set-Cookie', 'cookieName=cookieValue; Domain=example.com; Path=/;
 在客户端 JavaScript 中，你可以使用 `document.cookie` 来设置 Cookie，包括 `Domain` 属性：
 
 ```javascript
-document.cookie = "cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly";
+document.cookie = 'cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly'
 ```
 
 请注意，出于安全原因，浏览器通常会限制在客户端设置 `Domain` 属性。如果你尝试在客户端为一个不同的域（与当前页面域不匹配）设置 Cookie，浏览器可能会忽略这个设置。因此，通常建议在服务器端设置 `Domain` 属性。
@@ -806,9 +819,13 @@ document.cookie = "cookieName=cookieValue; Domain=example.com; Path=/; HttpOnly"
 如果你在客户端使用第三方库（如 `js-cookie`）来处理 Cookie，你可以这样设置 `Domain` 属性：
 
 ```javascript
-import Cookies from 'js-cookie';
+import Cookies from 'js-cookie'
 
-Cookies.set('cookieName', 'cookieValue', { domain: 'example.com', path: '/', secure: true });
+Cookies.set('cookieName', 'cookieValue', {
+  domain: 'example.com',
+  path: '/',
+  secure: true,
+})
 ```
 
 在这个例子中，`domain` 选项用于设置 `Domain` 属性。
@@ -822,6 +839,7 @@ Cookies.set('cookieName', 'cookieValue', { domain: 'example.com', path: '/', sec
 总之，`Domain` 属性是一个重要的 Cookie 属性，它决定了 Cookie 的发送范围。在设置 Cookie 时，应根据应用的需求和安全考虑来正确设置 `Domain` 属性。
 
 #### cookie `Domain=example.com` 和 `Domain=.example.com` 区别
+
 在设置 Cookie 的 `Domain` 属性时，`example.com` 和 `.example.com` 之间的区别在于它们指定的域的范围，尤其是关于子域的包含性。
 
 - `Domain=example.com`：这种设置意味着 Cookie 仅会被发送到精确匹配 `example.com` 的域。根据不同浏览器的实现，这可能不包括 `example.com` 的子域，如 `sub.example.com`。
@@ -864,4 +882,3 @@ Cookies.set('cookieName', 'cookieValue', { domain: 'example.com', path: '/', sec
 - 如果你在开发环境中遇到问题，请尝试在不同的浏览器和无痕/隐私模式下测试，以排除浏览器扩展或插件的干扰。
 
 如果你确定所有设置都是正确的，但 `document.cookie` 仍然无法设置 Cookie，你可能需要进一步调试或查看浏览器的控制台和网络请求，以获取更多关于失败原因的信息。
-
