@@ -103,6 +103,8 @@ CSS盒模型有两种计算方式：标准盒模型和IE盒模型（也称为怪
 
 ## `border-box`和`content-box`
 
+> 注意当我们讨论总宽度的时候，一般指的是元素的总宽度，无论那种盒模型，都是不包括外边距（margin）的
+
 在CSS中，`box-sizing`属性用于改变元素的盒模型计算方式，主要有两个值：`content-box`和`border-box`。这两个值决定了元素的宽度和高度如何被计算，尤其是当元素有内边距（padding）和边框（border）时。
 
 ### content-box（W3C标准盒模型）
