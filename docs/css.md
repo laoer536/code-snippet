@@ -602,3 +602,484 @@ CSS中的定位是一种布局方法，它允许你控制元素在页面上的�
 请注意，粘性定位可能需要一个滚动容器，并且元素的`top`, `right`, `bottom`, `left`属性需要有一个具体的值，以便知道何时应该“粘”在特定位置。
 
 定位元素时，你还可以使用`z-index`属性来控制元素的堆叠顺序（即哪个元素在上面）。`z-index`只对已定位的元素（`position`属性值不是`static`）有效。
+
+## outline
+
+> outline属性可以应用于几乎所有的HTML元素。
+
+在CSS中，`outline`是一个独立于CSS盒模型的属性，它用于绘制一个元素周围的线（通常是边框外面），但它不会影响元素的大小或布局，因为`outline`不占用空间，也不是盒模型的一部分。
+
+CSS盒模型由四个部分组成：内容（content）、内边距（padding）、边框（border）和外边距（margin）。`outline`与`border`相似，但有以下几个关键区别：
+
+1. **不占用空间**：`outline`不像`border`那样占据空间，它不会影响元素的总宽度或高度。
+2. **不受盒模型影响**：`outline`不会受到`box-sizing`属性的影响，而`border`会。
+3. **可能不是矩形**：`outline`可能不会严格遵循元素的形状，尤其是当元素有圆角时，`outline`可能会绘制成矩形，而不是跟随圆角。
+4. **不会影响元素之间的空间**：由于`outline`不占用空间，它不会影响元素与其他元素之间的间距。
+5. **可用于调试**：`outline`常被用于调试布局，因为它不会影响布局，可以快速识别元素的位置。
+
+`outline`属性是一个简写属性，可以设置`outline-style`、`outline-width`和`outline-color`。例如：
+
+```css
+.element {
+  outline: 2px solid red;
+}
+```
+
+这将在元素周围绘制一个2像素宽、红色的轮廓线。如果你只想设置轮廓线的某个特定属性，你也可以单独设置：
+
+```css
+.element {
+  outline-style: solid;
+  outline-width: 2px;
+  outline-color: red;
+}
+```
+
+`outline`也可以使用`outline-offset`属性来设置轮廓线与元素边缘之间的距离。正值会使轮廓线远离元素，负值会使轮廓线更靠近元素内部：
+
+```css
+.element {
+  outline: 2px solid red;
+  outline-offset: 5px; /* 轮廓线向外偏移5px */
+}
+```
+
+总的来说，`outline`是一个非常有用的属性，尤其是在需要高亮显示元素而又不改变布局时。
+
+## 伪类选择器
+
+在CSS中，伪类选择器用于定义元素的特殊状态。某些伪类选择器是针对特定元素或特定场景设计的。以下是一些常见的伪类选择器，以及它们通常适用的元素或场景：
+
+1. `:link` 和 `:visited`
+
+   - 用于锚点（`<a>`）元素，分别表示未访问和已访问的链接。
+
+   ```css
+   a:link {
+     color: blue;
+   }
+   a:visited {
+     color: purple;
+   }
+   ```
+
+2. `:hover`
+
+   - 适用于任何元素，表示鼠标悬停在元素上的状态。
+
+   ```css
+   button:hover {
+     background-color: yellow;
+   }
+   ```
+
+3. `:active`
+
+   - 适用于任何元素，表示元素被激活（例如，通过鼠标点击）的状态。
+
+   ```css
+   button:active {
+     background-color: red;
+   }
+   ```
+
+4. `:focus`
+
+   - 适用于可获得焦点的元素，如输入框（`<input>`）、按钮（`<button>`）和链接（`<a>`）。
+
+   ```css
+   input:focus {
+     border: 2px solid blue;
+   }
+   ```
+
+5. `:checked`
+
+   - 专门用于单选按钮（`<input type="radio">`）、复选框（`<input type="checkbox">`）和选项（`<option>`）元素，表示元素被选中的状态。
+
+   ```css
+   input[type='checkbox']:checked {
+     background-color: green;
+   }
+   ```
+
+6. `:disabled` 和 `:enabled`
+
+   - 用于表单控件，如输入框、选择列表、按钮等，分别表示元素被禁用和启用的状态。
+
+   ```css
+   input:disabled {
+     background-color: lightgray;
+   }
+   ```
+
+7. `:placeholder-shown`
+
+   - 用于输入框（`<input>`）和文本区域（`<textarea>`），表示元素显示占位符文本的状态。
+
+   ```css
+   input:placeholder-shown {
+     border: 2px dashed gray;
+   }
+   ```
+
+8. `:empty`
+
+   - 适用于任何元素，表示没有子内容（包括文本节点和元素节点）的元素。
+
+   ```css
+   p:empty {
+     background-color: lightyellow;
+   }
+   ```
+
+9. `:first-child` 和 `:last-child`
+
+   - 适用于任何元素，分别表示元素是其父元素的第一个和最后一个子元素。
+
+   ```css
+   li:first-child {
+     font-weight: bold;
+   }
+   ```
+
+10. `:nth-child()` 和 `:nth-of-type()`
+
+- 适用于任何元素，表示元素是其父元素的第n个子元素或特定类型的第n个子元素。
+
+  ```css
+  li:nth-child(2n) {
+    color: green;
+  }
+  ```
+
+11. `:not()`
+
+- 适用于任何元素，表示不符合括号内给定选择器的元素。
+
+  ```css
+  div:not(.special) {
+    background-color: gray;
+  }
+  ```
+
+这些伪类选择器可以帮助你根据元素的状态或位置来应用特定的样式，从而创建更丰富和交互性更强的用户界面。
+
+### 补充
+
+是的，CSS中还有许多其他的伪类选择器，除了上面提到的那些。以下是一些其他的伪类选择器：
+
+1. `:root`
+
+   - 用于匹配文档的根元素，通常是`<html>`元素。
+
+   ```css
+   :root {
+     --main-color: #333;
+   }
+   ```
+
+2. `:target`
+
+   - 用于匹配文档URL的片段标识符（fragment identifier）指向的元素。
+
+   ```css
+   :target {
+     background-color: yellow;
+   }
+   ```
+
+3. `:first-of-type` 和 `:last-of-type`
+
+   - 分别用于匹配其父元素的第一个和最后一个特定类型的子元素。
+
+   ```css
+   p:first-of-type {
+     font-size: 20px;
+   }
+   ```
+
+4. `:only-child`
+
+   - 用于匹配没有任何兄弟元素的元素，即它是其父元素的唯一子元素。
+
+   ```css
+   p:only-child {
+     color: blue;
+   }
+   ```
+
+5. `:only-of-type`
+
+   - 用于匹配其父元素中唯一的特定类型的子元素。
+
+   ```css
+   p:only-of-type {
+     color: red;
+   }
+   ```
+
+6. `:nth-last-child()` 和 `:nth-last-of-type()`
+
+   - 分别用于匹配其父元素的倒数第n个子元素或特定类型的倒数第n个子元素。
+
+   ```css
+   li:nth-last-child(2) {
+     font-style: italic;
+   }
+   ```
+
+7. `:first-letter` 和 `:first-line`
+
+   - 用于匹配元素的第一个字母或第一行文本，虽然它们是伪元素，但与伪类选择器类似，它们用于应用特定的样式。
+
+   ```css
+   p::first-letter {
+     font-size: 200%;
+   }
+   p::first-line {
+     font-weight: bold;
+   }
+   ```
+
+8. `:lang()`
+
+   - 用于匹配指定语言的元素。
+
+   ```css
+   p:lang(fr) {
+     font-style: italic;
+   }
+   ```
+
+9. `:read-only` 和 `:read-write`
+
+   - 分别用于匹配不可编辑和可编辑的元素（例如，表单输入）。
+
+   ```css
+   input:read-only {
+     background-color: #eee;
+   }
+   ```
+
+10. `:required` 和 `:optional`
+
+- 分别用于匹配表单中设置了`required`属性的必填输入和没有设置`required`属性的可选输入。
+
+  ```css
+  input:required {
+    border: 2px solid red;
+  }
+  ```
+
+11. `:valid` 和 `:invalid`
+
+- 用于匹配表单输入的有效性状态，根据输入值是否符合其类型和约束条件。
+
+  ```css
+  input:valid {
+    border-color: green;
+  }
+  input:invalid {
+    border-color: red;
+  }
+  ```
+
+12. `:in-range` 和 `:out-of-range`
+
+- 用于匹配`<input>`元素的值是否在定义的范围内。
+
+  ```css
+  input:in-range {
+    background-color: lightgreen;
+  }
+  ```
+
+13. `:fullscreen`
+
+- 用于匹配处于全屏模式的元素。
+
+  ```css
+  :fullscreen {
+    background-color: black;
+  }
+  ```
+
+这些伪类选择器提供了强大的方式来根据元素的状态、位置或特定条件来选择和样式化元素。随着CSS规范的发展，可能会有更多的伪类选择器被引入。
+
+## 伪元素选择器
+
+伪元素选择器用于选择元素的某个部分或为元素添加特殊效果。以下是一些常用的伪元素选择器：
+
+1. `::before`
+
+   - 在元素内容的前面插入内容。通常与`content`属性一起使用。
+
+   ```css
+   p::before {
+     content: '注意：';
+     font-weight: bold;
+   }
+   ```
+
+2. `::after`
+
+   - 在元素内容的后面插入内容。同样通常与`content`属性一起使用。
+
+   ```css
+   p::after {
+     content: '!';
+     font-style: italic;
+   }
+   ```
+
+3. `::first-letter`
+
+   - 选择元素的第一个字母。
+
+   ```css
+   p::first-letter {
+     font-size: 200%;
+     color: red;
+   }
+   ```
+
+4. `::first-line`
+
+   - 选择元素的第一行文本。
+
+   ```css
+   p::first-line {
+     font-weight: bold;
+     color: blue;
+   }
+   ```
+
+5. `::selection`
+
+   - 选择用户用鼠标或键盘选中的文本部分。
+
+   ```css
+   p::selection {
+     background-color: yellow;
+     color: black;
+   }
+   ```
+
+6. `::placeholder`
+
+   - 选择表单元素占位符文本。
+
+   ```css
+   input::placeholder {
+     color: gray;
+     font-style: italic;
+   }
+   ```
+
+7. `::marker`
+
+   - 选择列表项的标记符号，比如在`<ul>`、`<ol>`或`<menu>`中的项目符号或数字。
+
+   ```css
+   li::marker {
+     color: red;
+   }
+   ```
+
+8. `::backdrop`
+
+   - 选择全屏模式下元素的背景。这在全屏API中使用。
+
+   ```css
+   ::backdrop {
+     background-color: rgba(0, 0, 0, 0.5);
+   }
+   ```
+
+9. `::file-selector-button`
+
+   - 选择`<input type="file">`元素的按钮部分。
+
+   ```css
+   input[type='file']::file-selector-button {
+     background-color: blue;
+     color: white;
+   }
+   ```
+
+10. `::slotted()`
+
+- 用于选择Web组件（Shadow DOM）中的插槽元素的分配内容。
+
+  ```css
+  ::slotted(span) {
+    font-weight: bold;
+  }
+  ```
+
+11. `::part()`
+
+- 用于选择Web组件（Shadow DOM）中的部分元素。
+
+  ```css
+  custom-element::part(label) {
+    color: blue;
+  }
+  ```
+
+12. `::cue`
+
+- 用于选择WebVTT字幕文件中的提示文本。
+
+  ```css
+  ::cue {
+    background-color: yellow;
+  }
+  ```
+
+请注意，伪元素选择器在CSS2中使用单个冒号（如`:before`和`:after`），但在CSS3中推荐使用双冒号（如`::before`和`::after`）以区分伪类和伪元素。大多数浏览器都支持这两种语法，但为了兼容性，有时可能需要使用单冒号。伪元素选择器允许你以一种无需添加额外HTML元素的方式来装饰和改变元素的某些部分。
+
+大多数伪元素选择器都有一定的使用上下文，但并不是所有的伪元素选择器都必须在特定的元素上使用才能生效。以下是一些伪元素选择器的使用上下文和限制：
+
+1. `::first-letter` 和 `::first-line`
+
+   - 这些伪元素通常只能应用于块级元素（如`<p>`、`<div>`等）。它们不能应用于内联元素、替换元素（如`<img>`、`<input>`等），或者是空元素（没有内容的元素）。
+
+2. `::before` 和 `::after`
+
+   - 这些伪元素可以应用于任何可以包含内容的元素，但它们不能应用于替换元素或者是空元素。它们通常用于在元素的内容前后添加装饰性内容。
+
+3. `::placeholder`
+
+   - 这个伪元素只能应用于显示占位符文本的表单元素，如`<input>`和`<textarea>`。
+
+4. `::selection`
+
+   - 这个伪元素可以应用于任何元素，但是它的样式化能力有限（例如，不允许改变字体大小）。
+
+5. `::marker`
+
+   - 这个伪元素只能应用于列表项元素（`<li>`、`<dt>`、`<dd>`）和`<summary>`元素的标记符号。
+
+6. `::backdrop`
+
+   - 这个伪元素用于全屏模式下的元素背景，它不依赖于特定的元素，而是应用于全屏元素的背景。
+
+7. `::file-selector-button`
+
+   - 这个伪元素只能应用于`<input type="file">`元素的文件选择按钮。
+
+8. `::slotted()`
+
+   - 这个伪元素用于选择Web组件（Shadow DOM）中的插槽元素的分配内容，它只能在Shadow DOM的`:host`或`:host()`伪类内部使用。
+
+9. `::part()`
+
+   - 这个伪元素用于选择Web组件（Shadow DOM）中的部分元素，它只能在Shadow DOM的`:host`或`:host()`伪类内部使用。
+
+10. `::cue`
+
+- 这个伪元素用于选择WebVTT字幕文件中的提示文本，它只能应用于`<track>`元素。
+
+在使用伪元素选择器时，需要注意它们的适用范围和限制，以确保它们能够正确地生效。
