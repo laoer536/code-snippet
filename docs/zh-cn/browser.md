@@ -882,3 +882,65 @@ Cookies.set('cookieName', 'cookieValue', {
 - 如果你在开发环境中遇到问题，请尝试在不同的浏览器和无痕/隐私模式下测试，以排除浏览器扩展或插件的干扰。
 
 如果你确定所有设置都是正确的，但 `document.cookie` 仍然无法设置 Cookie，你可能需要进一步调试或查看浏览器的控制台和网络请求，以获取更多关于失败原因的信息。
+
+### 后端跨域设置cookie无效的解决办法
+
+> 注意是跨域时，对于未跨域的情况，后端可以直接设置成功，无需前端处理。
+
+在使用 `axios` 进行 HTTP 请求时，如果你需要在跨域请求中包含 `credentials`（如 cookies、HTTP 认证相关数据），你需要设置 `withCredentials` 选项为 `true`。这样做可以确保浏览器在发起跨域请求时会携带 cookies 和其他认证信息。
+
+以下是如何在 `axios` 中设置 `withCredentials` 的示例：
+
+**对于单个请求：**
+
+```javascript
+axios.get('https://example.com/api/data', {
+  withCredentials: true
+})
+.then(response => {
+  console.log(response.data);
+})
+.catch(error => {
+  console.error(error);
+});
+```
+
+**对于全局配置：**
+
+如果你希望所有的请求都携带 credentials，你可以在创建 `axios` 实例时或者直接在默认配置上设置 `withCredentials`：
+
+```javascript
+// 设置默认配置
+axios.defaults.withCredentials = true;
+
+// 或者在创建实例时设置
+const instance = axios.create({
+  withCredentials: true
+  // 其他配置项...
+});
+
+instance.get('https://example.com/api/data')
+.then(response => {
+  console.log(response.data);
+})
+.catch(error => {
+  console.error(error);
+});
+```
+
+请注意，服务器端也需要正确配置 CORS 策略来接受带有 credentials 的请求。这通常涉及到设置 `Access-Control-Allow-Credentials` 响应头为 `true`，并且 `Access-Control-Allow-Origin` 不能设置为 `*`，它必须指定为请求的源（例如 `https://yourdomain.com`）。
+
+例如，在 Express.js 中，你可以使用 `cors` 中间件来设置这些响应头：
+
+```javascript
+const cors = require('cors');
+
+const corsOptions = {
+  origin: 'https://yourdomain.com', // 替换为你的前端域名
+  credentials: true // 允许携带 credentials
+};
+
+app.use(cors(corsOptions));
+```
+
+确保前后端都正确设置了相关配置，以便跨域请求能够成功携带并接受 credentials。
