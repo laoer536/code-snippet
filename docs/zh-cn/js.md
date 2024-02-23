@@ -444,6 +444,46 @@ doSomething()
 5. **Promise.reject(reason)**:
    - 返回一个状态为rejected的`Promise`。
 
+> Promise.any和Promise.race区别
+
+`Promise.any` 和 `Promise.race` 都是用于处理多个 promises 的方法，但它们在行为上有一些关键的区别。
+
+### Promise.any
+- `Promise.any` 接受一个 Promise 可迭代对象（如数组），并且只要其中的一个 promise 成功（fulfilled），就返回一个解决（resolve）的 promise，该 promise 的结果是第一个成功的 promise 的结果。
+- 如果所有的 promises 都失败（rejected），`Promise.any` 会返回一个拒绝（reject）的 promise，其中包含一个 `AggregateError` 类型的错误，这个错误包含了所有失败 promises 的错误信息。
+- `Promise.any` 专注于成功的情况，忽略所有的拒绝，除非所有的 promises 都拒绝。
+
+### Promise.race
+- `Promise.race` 同样接受一个 Promise 可迭代对象，但它返回的 promise 将采用第一个解决（resolve）或拒绝（reject）的 promise 的结果，无论是成功还是失败。
+- `Promise.race` 对于成功和失败都是敏感的，它只关心哪个 promise 最先完成，而不管完成的是成功还是失败。
+
+### 区别总结
+- `Promise.any` 只在乎至少有一个 promise 成功，忽略所有失败的情况，除非全部失败。
+- `Promise.race` 在乎第一个完成的 promise，不管它是成功还是失败。
+
+### 示例
+为了更好地理解这两者之间的区别，让我们看一个简单的例子：
+
+```javascript
+const promise1 = new Promise((resolve, reject) => setTimeout(reject, 100, '失败1'));
+const promise2 = new Promise((resolve, reject) => setTimeout(resolve, 200, '成功2'));
+const promise3 = new Promise((resolve, reject) => setTimeout(reject, 300, '失败3'));
+
+Promise.any([promise1, promise2, promise3]).then((value) => {
+  console.log('Promise.any:', value); // "Promise.any: 成功2"
+}).catch((error) => {
+  console.error('Promise.any 错误:', error);
+});
+
+Promise.race([promise1, promise2, promise3]).then((value) => {
+  console.log('Promise.race:', value);
+}).catch((error) => {
+  console.error('Promise.race 错误:', error); // "Promise.race 错误: 失败1"
+});
+```
+
+在这个例子中，`Promise.any` 会忽略 `promise1` 的失败，因为 `promise2` 成功了，所以它会解决并打印 "Promise.any: 成功2"。而 `Promise.race` 会立即以 `promise1` 的失败结果结束，因为它是第一个完成的 promise，所以它会拒绝并打印 "Promise.race 错误: 失败1"。
+
 `Promise`是异步编程的强大工具，它简化了异步操作的管理，并提供了更好的错误处理机制。随着`async/await`的引入，`Promise`的使用变得更加直观和简洁。
 
 ## async/await
