@@ -480,6 +480,16 @@ Promise.race([promise1, promise2, promise3]).then((value) => {
 }).catch((error) => {
   console.error('Promise.race 错误:', error); // "Promise.race 错误: 失败1"
 });
+
+// Promise.race实现超时报错
+const fetchData = fetch('data.json').then(response => response.json());
+const timeout = new Promise((_, reject) => setTimeout(reject, 3000, '请求超时'));
+
+Promise.race([fetchData, timeout]).then((data) => {
+   console.log('数据:', data);
+}).catch((error) => {
+   console.error(error); // "请求超时" 或者 fetch 的错误
+});
 ```
 
 在这个例子中，`Promise.any` 会忽略 `promise1` 的失败，因为 `promise2` 成功了，所以它会解决并打印 "Promise.any: 成功2"。而 `Promise.race` 会立即以 `promise1` 的失败结果结束，因为它是第一个完成的 promise，所以它会拒绝并打印 "Promise.race 错误: 失败1"。
@@ -1448,3 +1458,5 @@ button.addEventListener('click', function () {
 - 深拷贝和浅拷贝都有其适用场景，深拷贝虽然可以创建完全独立的副本，但是也更加耗费资源，特别是在对象很大或结构很复杂时。
 - `JSON.parse(JSON.stringify(object))`方法在深拷贝时有局限性，例如它无法复制函数、undefined、Symbol、循环引用等。
 - 在实际应用中，应根据具体需求选择合适的拷贝方式，以避免不必要的性能开销或者意外的副作用。
+
+

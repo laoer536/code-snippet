@@ -482,6 +482,16 @@ Promise.race([promise1, promise2, promise3]).then((value) => {
 }).catch((error) => {
   console.error('Promise.race 错误:', error); // "Promise.race 错误: 失败1"
 });
+
+// Promise.race实现超时报错
+const fetchData = fetch('data.json').then(response => response.json());
+const timeout = new Promise((_, reject) => setTimeout(reject, 3000, '请求超时'));
+
+Promise.race([fetchData, timeout]).then((data) => {
+   console.log('数据:', data);
+}).catch((error) => {
+   console.error(error); // "请求超时" 或者 fetch 的错误
+});
 ```
 
 在这个例子中，`Promise.any` 会忽略 `promise1` 的失败，因为 `promise2` 成功了，所以它会解决并打印 "Promise.any: 成功2"。而 `Promise.race` 会立即以 `promise1` 的失败结果结束，因为它是第一个完成的 promise，所以它会拒绝并打印 "Promise.race 错误: 失败1"。
