@@ -811,7 +811,7 @@ CSS盒模型由四个部分组成：内容（content）、内边距（padding）
 
 5. `:only-of-type`
 
-   - 用于匹配其父元素中唯一的特定类型的子元素。
+   - CSS 伪类代表了任意一个元素，这个元素没有其他相同类型的兄弟元素。
 
    ```css
    p:only-of-type {
@@ -1083,3 +1083,41 @@ CSS盒模型由四个部分组成：内容（content）、内边距（padding）
 - 这个伪元素用于选择WebVTT字幕文件中的提示文本，它只能应用于`<track>`元素。
 
 在使用伪元素选择器时，需要注意它们的适用范围和限制，以确保它们能够正确地生效。
+
+### `::placeholder`和`:placeholder-shown`的区别
+
+在CSS中，`:placeholder-shown` 和 `::placeholder` 是两个不同的伪类和伪元素，它们用于不同的目的。
+
+1. `::placeholder`：
+   这是一个伪元素，它用于改变占位文本（placeholder text）的样式，即当输入框为空且没有焦点时显示的灰色提示文字。使用这个伪元素，你可以改变占位文本的颜色、字体大小、字体样式等。
+
+示例：
+
+```css
+input::placeholder {
+  color: red;
+  font-style: italic;
+}
+```
+
+上面的代码会将输入框中的占位文本颜色改为红色，并且斜体显示。
+
+2. `:placeholder-shown`：
+   这是一个伪类，它用于选择那些当前显示占位文本的输入元素。与 `::placeholder` 不同，`:placeholder-shown` 伪类可以用来改变整个输入框的样式，而不仅仅是占位文本。当输入框为空，显示占位文本时，`:placeholder-shown` 伪类的样式就会被应用。
+
+示例：
+
+```css
+input:placeholder-shown {
+  border: 2px solid blue;
+}
+```
+
+上面的代码会在输入框为空且显示占位文本时，将输入框的边框颜色改为蓝色。
+
+总结：
+
+- `::placeholder` 专门用于改变占位文本的样式。
+- `:placeholder-shown` 用于选择显示占位文本的输入框，并可以改变输入框的整体样式。
+
+请注意，CSS伪元素使用双冒号（`::`），而伪类使用单冒号（`:`）。这是为了区分伪类和伪元素，尽管在旧版本的CSS中伪元素也是使用单冒号的。
