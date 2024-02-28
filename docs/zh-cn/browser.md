@@ -127,6 +127,51 @@ title: 'browser'
 
 浏览器的渲染机制是一个动态的过程，任何对DOM或CSSOM的修改都可能导致重新布局、绘制或合成，因此了解和优化这些过程对于前端性能优化至关重要。
 
+### 扩展
+
+`<script>` 标签的 `async` 和 `defer` 属性用于控制外部脚本文件的加载和执行行为。它们都是 HTML5 中引入的属性，用于优化页面加载性能。
+
+### async 属性
+
+当 `<script>` 标签具有 `async` 属性时，它指示浏览器异步加载脚本。这意味着脚本会在后台下载，而不会阻塞文档的解析。一旦脚本下载完成，它会尽快执行，但执行的具体时间点无法保证，因为它取决于脚本下载的速度和文档解析的进度。
+
+```html
+<script async src="script.js"></script>
+```
+
+使用 `async` 属性的脚本不应该依赖于其他脚本或修改 DOM 的操作，因为它们的执行顺序是不确定的。
+
+### defer 属性
+
+当 `<script>` 标签具有 `defer` 属性时，它也指示浏览器异步加载脚本，但与 `async` 不同的是，`defer` 脚本会保证在文档解析完成后、DOMContentLoaded 事件触发之前按照它们在文档中出现的顺序执行。
+
+```html
+<script defer src="script.js"></script>
+```
+
+这意味着使用 `defer` 的脚本可以安全地访问 DOM，并且如果有多个 `defer` 脚本，它们将按照在文档中出现的顺序执行。
+
+### 比较
+
+- `async`：
+
+  - 脚本异步加载。
+  - 脚本加载完成后立即执行，不等待其他脚本或文档解析完成。
+  - 执行顺序不确定，可能会在 `DOMContentLoaded` 事件之前或之后。
+  - 适用于不依赖于其他脚本或页面内容的独立模块。
+
+- `defer`：
+  - 脚本异步加载。
+  - 脚本在文档解析完成后、`DOMContentLoaded` 事件触发之前按顺序执行。
+  - 执行顺序确定，总是在所有 `defer` 脚本加载完成后按照它们在文档中的顺序执行。
+  - 适用于需要访问或修改 DOM 的脚本。
+
+### 注意事项
+
+- 如果脚本不包含 `src` 属性（即内联脚本），那么 `async` 和 `defer` 属性不会产生任何效果。
+- 如果同时使用了 `async` 和 `defer`，`async` 属性将具有优先权，`defer` 将被忽略。
+- 对于老旧的浏览器，可能不支持 `async` 和 `defer` 属性，因此在使用时需要考虑兼容性问题。
+
 ## 回流与重绘
 
 在浏览器中，重绘（Repaint）和回流（Reflow），也被称为重排，是两种与渲染相关的性能消耗过程。了解这两个过程对于前端性能优化至关重要。
@@ -894,15 +939,16 @@ Cookies.set('cookieName', 'cookieValue', {
 **对于单个请求：**
 
 ```javascript
-axios.get('https://example.com/api/data', {
-  withCredentials: true
-})
-.then(response => {
-  console.log(response.data);
-})
-.catch(error => {
-  console.error(error);
-});
+axios
+  .get('https://example.com/api/data', {
+    withCredentials: true,
+  })
+  .then((response) => {
+    console.log(response.data)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
 ```
 
 **对于全局配置：**
@@ -911,21 +957,22 @@ axios.get('https://example.com/api/data', {
 
 ```javascript
 // 设置默认配置
-axios.defaults.withCredentials = true;
+axios.defaults.withCredentials = true
 
 // 或者在创建实例时设置
 const instance = axios.create({
-  withCredentials: true
+  withCredentials: true,
   // 其他配置项...
-});
-
-instance.get('https://example.com/api/data')
-.then(response => {
-  console.log(response.data);
 })
-.catch(error => {
-  console.error(error);
-});
+
+instance
+  .get('https://example.com/api/data')
+  .then((response) => {
+    console.log(response.data)
+  })
+  .catch((error) => {
+    console.error(error)
+  })
 ```
 
 请注意，服务器端也需要正确配置 CORS 策略来接受带有 credentials 的请求。这通常涉及到设置 `Access-Control-Allow-Credentials` 响应头为 `true`，并且 `Access-Control-Allow-Origin` 不能设置为 `*`，它必须指定为请求的源（例如 `https://yourdomain.com`）。
@@ -933,14 +980,14 @@ instance.get('https://example.com/api/data')
 例如，在 Express.js 中，你可以使用 `cors` 中间件来设置这些响应头：
 
 ```javascript
-const cors = require('cors');
+const cors = require('cors')
 
 const corsOptions = {
   origin: 'https://yourdomain.com', // 替换为你的前端域名
-  credentials: true // 允许携带 credentials
-};
+  credentials: true, // 允许携带 credentials
+}
 
-app.use(cors(corsOptions));
+app.use(cors(corsOptions))
 ```
 
 确保前后端都正确设置了相关配置，以便跨域请求能够成功携带并接受 credentials。
