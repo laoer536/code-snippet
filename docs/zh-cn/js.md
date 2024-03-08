@@ -449,47 +449,63 @@ doSomething()
 `Promise.any` 和 `Promise.race` 都是用于处理多个 promises 的方法，但它们在行为上有一些关键的区别。
 
 ### Promise.any
+
 - `Promise.any` 接受一个 Promise 可迭代对象（如数组），并且只要其中的一个 promise 成功（fulfilled），就返回一个解决（resolve）的 promise，该 promise 的结果是第一个成功的 promise 的结果。
 - 如果所有的 promises 都失败（rejected），`Promise.any` 会返回一个拒绝（reject）的 promise，其中包含一个 `AggregateError` 类型的错误，这个错误包含了所有失败 promises 的错误信息。
 - `Promise.any` 专注于成功的情况，忽略所有的拒绝，除非所有的 promises 都拒绝。
 
 ### Promise.race
+
 - `Promise.race` 同样接受一个 Promise 可迭代对象，但它返回的 promise 将采用第一个解决（resolve）或拒绝（reject）的 promise 的结果，无论是成功还是失败。
 - `Promise.race` 对于成功和失败都是敏感的，它只关心哪个 promise 最先完成，而不管完成的是成功还是失败。
 
 ### 区别总结
+
 - `Promise.any` 只在乎至少有一个 promise 成功，忽略所有失败的情况，除非全部失败。
 - `Promise.race` 在乎第一个完成的 promise，不管它是成功还是失败。
 
 ### 示例
+
 为了更好地理解这两者之间的区别，让我们看一个简单的例子：
 
 ```javascript
-const promise1 = new Promise((resolve, reject) => setTimeout(reject, 100, '失败1'));
-const promise2 = new Promise((resolve, reject) => setTimeout(resolve, 200, '成功2'));
-const promise3 = new Promise((resolve, reject) => setTimeout(reject, 300, '失败3'));
+const promise1 = new Promise((resolve, reject) =>
+  setTimeout(reject, 100, '失败1'),
+)
+const promise2 = new Promise((resolve, reject) =>
+  setTimeout(resolve, 200, '成功2'),
+)
+const promise3 = new Promise((resolve, reject) =>
+  setTimeout(reject, 300, '失败3'),
+)
 
-Promise.any([promise1, promise2, promise3]).then((value) => {
-  console.log('Promise.any:', value); // "Promise.any: 成功2"
-}).catch((error) => {
-  console.error('Promise.any 错误:', error);
-});
+Promise.any([promise1, promise2, promise3])
+  .then((value) => {
+    console.log('Promise.any:', value) // "Promise.any: 成功2"
+  })
+  .catch((error) => {
+    console.error('Promise.any 错误:', error)
+  })
 
-Promise.race([promise1, promise2, promise3]).then((value) => {
-  console.log('Promise.race:', value);
-}).catch((error) => {
-  console.error('Promise.race 错误:', error); // "Promise.race 错误: 失败1"
-});
+Promise.race([promise1, promise2, promise3])
+  .then((value) => {
+    console.log('Promise.race:', value)
+  })
+  .catch((error) => {
+    console.error('Promise.race 错误:', error) // "Promise.race 错误: 失败1"
+  })
 
 // Promise.race实现超时报错
-const fetchData = fetch('data.json').then(response => response.json());
-const timeout = new Promise((_, reject) => setTimeout(reject, 3000, '请求超时'));
+const fetchData = fetch('data.json').then((response) => response.json())
+const timeout = new Promise((_, reject) => setTimeout(reject, 3000, '请求超时'))
 
-Promise.race([fetchData, timeout]).then((data) => {
-   console.log('数据:', data);
-}).catch((error) => {
-   console.error(error); // "请求超时" 或者 fetch 的错误
-});
+Promise.race([fetchData, timeout])
+  .then((data) => {
+    console.log('数据:', data)
+  })
+  .catch((error) => {
+    console.error(error) // "请求超时" 或者 fetch 的错误
+  })
 ```
 
 在这个例子中，`Promise.any` 会忽略 `promise1` 的失败，因为 `promise2` 成功了，所以它会解决并打印 "Promise.any: 成功2"。而 `Promise.race` 会立即以 `promise1` 的失败结果结束，因为它是第一个完成的 promise，所以它会拒绝并打印 "Promise.race 错误: 失败1"。
@@ -914,6 +930,54 @@ console.log(myDog.bark()) // Woof!
 4. 我们还修复了`Dog.prototype.constructor`属性，让它指回`Dog`。
 5. `myDog`是`Dog`的一个实例，它可以访问`Dog.prototype`上的`bark`方法，也可以通过原型链访问`Animal.prototype`上的`getName`方法。
 
+```js
+// ES6 Class
+class Person {
+  sex = 1
+  //使用 new 关键字创建一个类的实例时，constructor 方法会被自动调用。你可以在 constructor 方法中设置对象的初始属性和执行其他只需在对象创建时执行一次的代码。
+  constructor(name, age) {
+    this.name = name // 设置对象的name属性
+    this.age = age // 设置对象的age属性
+    this.greet2 = function () {
+      console.log(
+        `Hello, my name is ${this.name} and I am ${this.age} years old.`,
+      )
+    }
+  }
+
+  greet() {
+    console.log(
+      `Hello, my name is ${this.name} and I am ${this.age} years old.`,
+    )
+  }
+}
+
+const personInstance = new Person('Alice', 30)
+
+/*personInstance = {
+   sex: 1,
+   name: 'Alice',
+   age: 30,
+   greet2: function () {
+      console.log(`Hello, my name is ${this.name} and I am ${this.age} years old.`);
+   },
+   __proto__: Person.prototype
+}*/
+
+/*
+Person.prototype = {
+   constructor: Person, // 原型对象默认包含对构造函数的引用
+   greet: function() {
+      console.log(`Hello, my name is ${this.name} and I am ${this.age} years old.`);
+   },
+   // 注意：这里不会有 greet2 方法，因为它是在构造函数中定义的实例方法
+   __proto__: Object.prototype // 所有对象的原型链最终都会指向 Object.prototype
+}*/
+
+//preson.__proto__.constructor === Person  //true
+//preson.constructor === Person  //true
+```
+
 ### 原型链的重要性
 
 原型链是JavaScript中实现继承的主要方式。它允许对象共享方法和属性，这样可以节省内存，因为不需要在每个对象实例中复制这些方法和属性。同时，原型链也是理解JavaScript对象模型的关键。
@@ -1258,36 +1322,36 @@ element.addEventListener('click', function (event) {
 // error demo
 export const SUBTITLE_FORMAT_OPTIONS = (i18n) => {
   const t = i18n.t
-   // VueI18n.prototype.t = function t (key) {
-   //    var ref;
-   //
-   //    var values = [], len = arguments.length - 1;
-   //    while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
-   //    return (ref = this)._t.apply(ref, [ key, this.locale, this._getMessages(), null ].concat( values ))
-   // };
-   return [
-      {
-         value: 0,
-         label: t('constant')[0],   // t函数中使用了this._t，但是在这里this的值是undefined,这里也要注意一下，无论导出的函数是普通函数还是箭头函数，只要是在任何使用了模块系统(cjs,mjs)的JavaScript环境中，顶层直接调用(函数没有被作为对象的方法调用)，指向都是undefined(默认启用严格模式)，不会受运行的上下文影响，除非对导出的普通函数使用call,bind或者apply,当然导出的箭头函数是修改不了的。
-         // JavaScript不使用动态作用域，JavaScript采用词法作用域（也称为静态作用域），这意味着函数的作用域在函数定义时就已经确定了，而不是在函数调用时。换句话说，函数可以访问在其外部定义的变量。(取决于定义时，非运行时。)
-      },
-      {
-         value: 1,
-         label: t('constant')[1],
-      },
-      {
-         value: 2,
-         label: t('constant')[2],
-      },
-      {
-         value: 3,
-         label: t('constant')[3],
-      },
-      {
-         value: 4,
-         label: t('constant')[4],
-      },
-   ]
+  // VueI18n.prototype.t = function t (key) {
+  //    var ref;
+  //
+  //    var values = [], len = arguments.length - 1;
+  //    while ( len-- > 0 ) values[ len ] = arguments[ len + 1 ];
+  //    return (ref = this)._t.apply(ref, [ key, this.locale, this._getMessages(), null ].concat( values ))
+  // };
+  return [
+    {
+      value: 0,
+      label: t('constant')[0], // t函数中使用了this._t，但是在这里this的值是undefined,这里也要注意一下，无论导出的函数是普通函数还是箭头函数，只要是在任何使用了模块系统(cjs,mjs)的JavaScript环境中，顶层直接调用(函数没有被作为对象的方法调用)，指向都是undefined(默认启用严格模式)，不会受运行的上下文影响，除非对导出的普通函数使用call,bind或者apply,当然导出的箭头函数是修改不了的。
+      // JavaScript不使用动态作用域，JavaScript采用词法作用域（也称为静态作用域），这意味着函数的作用域在函数定义时就已经确定了，而不是在函数调用时。换句话说，函数可以访问在其外部定义的变量。(取决于定义时，非运行时。)
+    },
+    {
+      value: 1,
+      label: t('constant')[1],
+    },
+    {
+      value: 2,
+      label: t('constant')[2],
+    },
+    {
+      value: 3,
+      label: t('constant')[3],
+    },
+    {
+      value: 4,
+      label: t('constant')[4],
+    },
+  ]
 }
 
 // success demo
@@ -1315,7 +1379,6 @@ export const SUBTITLE_FORMAT_OPTIONS2 = (i18n) => {
     },
   ]
 }
-
 ```
 
 ### 全局上下文
@@ -1458,5 +1521,3 @@ button.addEventListener('click', function () {
 - 深拷贝和浅拷贝都有其适用场景，深拷贝虽然可以创建完全独立的副本，但是也更加耗费资源，特别是在对象很大或结构很复杂时。
 - `JSON.parse(JSON.stringify(object))`方法在深拷贝时有局限性，例如它无法复制函数、undefined、Symbol、循环引用等。
 - 在实际应用中，应根据具体需求选择合适的拷贝方式，以避免不必要的性能开销或者意外的副作用。
-
-
