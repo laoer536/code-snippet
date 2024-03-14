@@ -978,6 +978,47 @@ Person.prototype = {
 
 //preson.__proto__.constructor === Person  //true
 //preson.constructor === Person  //true
+
+// 定义基类 Animal
+class Animal {
+  constructor(name) {
+    this.name = name
+  }
+
+  speak() {
+    console.log(`${this.name} makes a noise.`)
+  }
+}
+
+// 定义子类 Dog，它继承自 Animal
+class Dog extends Animal {
+  constructor(name, breed) {
+    super(name) // 调用父类的 constructor 这里就相当于合并子父constructor操作 并都只作用于子了 因此name最终在dog实例中 方法也是同样的道理
+    this.breed = breed
+  }
+
+  speak() {
+    // super.speak(); // 调用父类的 speak 方法
+    console.log(`${this.name} barks.`)
+  }
+}
+
+// 创建 Dog 类的实例
+let dog = new Dog('Rex', 'Golden Retriever')
+//dog
+/*
+dog = {
+  name: 'Rex',
+  breed: 'Golden Retriever',
+   __proto_:{
+      constructor:Dog,
+      speak:Function,
+      __proto_:{
+         constructor:Animal,
+         speak:Function
+      }
+   }
+}*/
 ```
 
 ### 原型链的重要性
