@@ -1507,6 +1507,20 @@ const myObject = {
 }
 
 myObject.method() // this 指向 myObject
+
+// 浏览器中
+const myObject = {
+  arrowFunc: () => {
+    console.log(this)
+  },
+
+  func() {
+    console.log(this)
+  },
+}
+
+myObject.arrowFunc() // this -> window
+myObject.func() // this -> myObject
 ```
 
 在箭头函数中，无论它如何被调用，`this`的值都取决于它外层（函数或全局）作用域的`this`值。
