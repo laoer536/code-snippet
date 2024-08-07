@@ -800,6 +800,60 @@ console.log(counter()) // 输出 3
 
 在这个例子中，`createCounter` 函数返回了一个匿名函数，这个匿名函数可以访问并修改`createCounter`作用域中的`count`变量。即使`createCounter`函数执行完毕，返回的匿名函数仍然可以访问`count`变量，这就是闭包的作用。
 
+注意下面这种情况
+
+```javascript
+function test() {
+  let num = 0
+  function add() {
+    num = ++num
+    console.log(num)
+  }
+
+  function getNum() {
+    return num
+  }
+
+  return {
+    getNum, //动态获取
+    add,
+    num, //这个值在对象创建时就已经确定了，并且不会随着 add 函数的调用而改变。也就是说，obj.num 始终是初始值 0
+  }
+}
+
+const obj = test()
+obj.add() //1
+obj.add() //2
+console.log(obj.getNum()) //2
+console.log(obj.num) //0
+```
+
+```javascript
+function test() {
+  let num = 0
+  function add() {
+    num = ++num
+    console.log(num)
+  }
+
+  function getNum() {
+    return num
+  }
+
+  return {
+    getNum, //动态获取
+    add,
+    num, //这个值在对象创建时就已经确定了，并且不会随着 add 函数的调用而改变。也就是说，obj.num 始终是初始值 0
+  }
+}
+
+const { num, add, getNum } = test()
+add() //1
+add() //2
+console.log(getNum()) //2
+console.log(num) //0
+```
+
 ### 闭包的用途
 
 闭包有多种用途，包括但不限于：
