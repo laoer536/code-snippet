@@ -8,7 +8,7 @@ title: 'nginx'
 2. 申请证书
 3. [部署证书](https://cloud.tencent.com/document/product/400/35244)
 
-示例：
+示例：(以下转发的接口都是docker对应服务向外暴露的端口)
 
 ```nginx
 # For more information on configuration, see:
@@ -90,13 +90,13 @@ http {
         ssl_prefer_server_ciphers on;
 
         location / {
-           # 转发所有请求到本地的 8080 端口  
-           proxy_pass http://127.0.0.1:90;  
-           # 以下是一些常用的 proxy_pass 配置选项  
-           proxy_set_header Host $host;  
-           proxy_set_header X-Real-IP $remote_addr;  
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;  
-           proxy_set_header X-Forwarded-Proto $scheme;  
+           # 转发所有请求到本地的 8080 端口
+           proxy_pass http://127.0.0.1:90;
+           # 以下是一些常用的 proxy_pass 配置选项
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
         }
 
         error_page 404 /404.html;
@@ -155,7 +155,6 @@ http {
 	   index index.html index.htm;
         }
     }
-}    
+}
 
 ```
-

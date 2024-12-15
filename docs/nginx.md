@@ -8,7 +8,7 @@ title: 'nginx'
 2. Apply for a certificate
 3. [部署证书](https://cloud.tencent.com/document/product/400/35244)
 
-示例：
+Example: (The following forwarded interfaces are all ports exposed by docker corresponding services)
 
 ```nginx
 # For more information on configuration, see:
