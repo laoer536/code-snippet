@@ -605,3 +605,927 @@ Zustand 是一个简单、小巧的状态管理库，它提供了一个简单的
 - **学习曲线**：虚拟DOM和相关框架的概念需要时间去学习和理解。
 
 虚拟DOM是现代前端框架（如React、Vue和Inferno）的核心概念之一，它极大地改善了开发体验和应用性能。
+
+# React 底层原理详解 (React 18+)
+
+## 目录
+
+1. JSX 转换过程
+2. 虚拟 DOM 创建
+3. Fiber 树构建
+4. 渲染流程
+5. 更新机制
+6. Hooks 原理
+7. 并发渲染
+
+## 1. JSX 转换过程
+
+### 1.1 JSX 到 React.createElement
+
+在 React 18 中，JSX 转换使用 `jsx-runtime`：
+
+```javascript
+// 原始 JSX
+function App() {
+  return (
+    <div className="container">
+      <h1>Hello</h1>
+      <p>React</p>
+    </div>
+  )
+}
+
+// 转换后的代码 (React 18)
+import { jsx as _jsx } from 'react/jsx-runtime'
+
+function App() {
+  return _jsx('div', {
+    className: 'container',
+    children: [
+      _jsx('h1', { children: 'Hello' }),
+      _jsx('p', { children: 'React' }),
+    ],
+  })
+}
+```
+
+### 1.2 新的 JSX Transform
+
+```javascript
+// React 18 的 JSX Transform
+import { jsx } from 'react/jsx-runtime'
+
+function jsx(type, props, key) {
+  return {
+    $$typeof: Symbol.for('react.element'),
+    type,
+    key,
+    props,
+  }
+}
+```
+
+### 1.3 JSX 转换底层实现
+
+JSX 的转换过程涉及 Babel 和 AST（抽象语法树），主要包含以下步骤：
+
+#### 1.3.1 转换流程示例
+
+```javascript
+// 1. 原始 JSX 代码
+function App() {
+  return (
+    <div className="container">
+      <h1>Hello</h1>
+    </div>
+  );
+}
+
+// 2. Babel 解析为 AST
+// AST 结构示例
+{
+  "type": "Program",
+  "body": [{
+    "type": "FunctionDeclaration",
+    "id": {
+      "type": "Identifier",
+      "name": "App"
+    },
+    "body": {
+      "type": "BlockStatement",
+      "body": [{
+        "type": "ReturnStatement",
+        "argument": {
+          "type": "JSXElement",
+          "openingElement": {
+            "type": "JSXOpeningElement",
+            "name": {
+              "type": "JSXIdentifier",
+              "name": "div"
+            },
+            "attributes": [{
+              "type": "JSXAttribute",
+              "name": {
+                "type": "JSXIdentifier",
+                "name": "className"
+              },
+              "value": {
+                "type": "StringLiteral",
+                "value": "container"
+              }
+            }]
+          },
+          "children": [/*...*/]
+        }
+      }]
+    }
+  }]
+}
+
+// 3. 最终转换后的代码
+import { jsx as _jsx } from 'react/jsx-runtime';
+
+function App() {
+  return _jsx("div", {
+    className: "container",
+    children: _jsx("h1", {
+      children: "Hello"
+    })
+  });
+}
+```
+
+#### 1.3.2 转换过程的主要阶段
+
+```javascript
+// 1. 词法分析（Lexical Analysis）
+const tokens = lexer(`<div className="container">Hello</div>`)
+// 结果: [
+//   { type: 'JSX_TAG_START', value: '<' },
+//   { type: 'JSX_IDENTIFIER', value: 'div' },
+//   { type: 'JSX_ATTRIBUTE_KEY', value: 'className' },
+//   { type: 'JSX_ATTRIBUTE_VALUE', value: 'container' },
+//   ...
+// ]
+
+// 2. 语法分析（Syntactic Analysis）
+const ast = parser(tokens)
+
+// 3. 转换（Transform）
+const transformedAst = transform(ast)
+
+// 4. 代码生成（Code Generation）
+const code = generate(transformedAst)
+```
+
+#### 1.3.3 Babel 插件实现
+
+```javascript
+// Babel 插件示例
+module.exports = function (babel) {
+  const { types: t } = babel
+
+  return {
+    name: 'transform-jsx',
+    visitor: {
+      JSXElement(path) {
+        // 1. 获取标签名
+        const openingElement = path.node.openingElement
+        const tagName = openingElement.name.name
+
+        // 2. 处理属性
+        const attributes = openingElement.attributes.map((attr) => {
+          return t.objectProperty(t.identifier(attr.name.name), attr.value)
+        })
+
+        // 3. 处理子元素
+        const children = path.node.children.map((child) => {
+          if (t.isJSXText(child)) {
+            return t.stringLiteral(child.value)
+          }
+          return this.visitor.JSXElement.call(this, child)
+        })
+
+        // 4. 创建 _jsx 调用
+        const jsxCall = t.callExpression(t.identifier('_jsx'), [
+          t.stringLiteral(tagName),
+          t.objectExpression([
+            ...attributes,
+            t.objectProperty(
+              t.identifier('children'),
+              children.length === 1 ? children[0] : children,
+            ),
+          ]),
+        ])
+
+        // 5. 替换原始节点
+        path.replaceWith(jsxCall)
+      },
+    },
+  }
+}
+```
+
+#### 1.3.4 Babel 配置
+
+```javascript
+// babel.config.js
+module.exports = {
+  presets: [
+    [
+      '@babel/preset-react',
+      {
+        runtime: 'automatic', // 使用新的 JSX Transform
+        importSource: 'react', // 指定 runtime 的来源
+      },
+    ],
+  ],
+}
+```
+
+#### 1.3.5 运行时转换
+
+```javascript
+// 开发环境中的 JSX 运行时
+const jsx = (type, props, key) => {
+  return {
+    $$typeof: Symbol.for('react.element'),
+    type,
+    key: key === undefined ? null : key,
+    props,
+  }
+}
+
+// 生产环境优化版本
+const jsx = (t, p, k) => ({
+  $$typeof: Symbol.for('react.element'),
+  type: t,
+  key: k ?? null,
+  props: p,
+})
+```
+
+JSX 转换过程的优势：
+
+1. **编译时优化**：在构建时完成转换
+2. **运行时性能**：减少了运行时的开销
+3. **更好的错误提示**：可以提供更准确的错误信息
+4. **更小的包体积**：不需要包含完整的转换逻辑
+
+## 2. 虚拟 DOM 创建
+
+### 2.1 React Element 结构 (React 18)
+
+```javascript
+// React 18 中的 Element 结构
+const element = {
+  $$typeof: Symbol.for('react.element'),
+  type: 'div',
+  key: null,
+  props: {
+    className: 'container',
+    children: [
+      {
+        $$typeof: Symbol.for('react.element'),
+        type: 'h1',
+        props: { children: 'Hello' },
+      },
+    ],
+  },
+}
+```
+
+### 2.2 函数式组件渲染
+
+```javascript
+// 函数式组件示例
+function Welcome(props) {
+  return _jsx('h1', { children: `Hello, ${props.name}` })
+}
+
+// 使用 Hooks 的组件
+function Counter() {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    document.title = `Count: ${count}`
+  }, [count])
+
+  return _jsx('div', {
+    children: [
+      _jsx('h1', { children: `Count: ${count}` }),
+      _jsx('button', {
+        onClick: () => setCount((c) => c + 1),
+        children: 'Increment',
+      }),
+    ],
+  })
+}
+```
+
+## 3. Fiber 树构建 (React 18)
+
+### 3.1 Fiber 架构基础
+
+```javascript
+// React 18 中的 Fiber 节点
+const fiber = {
+  // 节点类型信息
+  tag: 0, // 标识fiber类型
+  type: null, // 组件类型，如 'div', function Component() 等
+  elementType: null, // 元素类型
+
+  // 节点数据
+  key: null,
+  props: null,
+  ref: null,
+
+  // Fiber 树结构
+  return: null, // 父节点
+  child: null, // 第一个子节点
+  sibling: null, // 下一个兄弟节点
+
+  // 状态相关
+  pendingProps: null,
+  memoizedProps: null,
+  memoizedState: null,
+
+  // 副作用相关
+  flags: 0, // 标记节点的副作用类型
+  subtreeFlags: 0,
+  deletions: null,
+
+  // 调度优先级相关
+  lanes: 0,
+  childLanes: 0,
+
+  // 更新相关
+  alternate: null, // 指向旧树的同位置节点
+}
+```
+
+### 3.2 Fiber 与并发渲染的结合
+
+```javascript
+// 1. 工作循环
+function workLoopConcurrent(deadline) {
+  // shouldYield 用于判断是否需要让出执行权
+  let shouldYield = false
+
+  while (workInProgress !== null && !shouldYield) {
+    // performUnitOfWork 处理一个 Fiber 节点
+    workInProgress = performUnitOfWork(workInProgress)
+    // 检查是否需要让出执行权给浏览器
+    shouldYield = deadline.timeRemaining() < 1
+  }
+
+  // 如果还有未完成的工作，安排下一个时间片
+  if (workInProgress !== null) {
+    // 使用调度器安排下一次执行
+    scheduleCallback(workLoopConcurrent)
+  }
+}
+
+// 2. 优先级调度
+function scheduleUpdateOnFiber(fiber, lane) {
+  // 获取 root
+  const root = markUpdateLaneFromFiberToRoot(fiber)
+
+  // 标记优先级
+  markRootUpdated(root, lane)
+
+  // 调度更新
+  ensureRootIsScheduled(root)
+}
+
+// 3. 任务优先级区分
+const InputContinuousLane = 0b0000000000000000000000000000100
+const DefaultLane = 0b0000000000000000000000000010000
+const TransitionLane = 0b0000000000000000000100000000000
+const IdleLane = 0b1000000000000000000000000000000
+
+// 4. 并发特性的实现
+function startTransition(scope) {
+  const prevTransition = ReactCurrentBatchConfig.transition
+  ReactCurrentBatchConfig.transition = 1
+  try {
+    scope()
+  } finally {
+    ReactCurrentBatchConfig.transition = prevTransition
+  }
+}
+```
+
+### 3.3 Fiber 工作原理
+
+1. **构建阶段（Render/Reconciliation）**：
+
+   - 创建新的 Fiber 节点
+   - 对比新旧节点（Diffing）
+   - 标记副作用（Effects）
+
+2. **提交阶段（Commit）**：
+   - 处理副作用
+   - 更新 DOM
+   - 调用生命周期和 hooks
+
+### 3.4 并发渲染增强
+
+1. **时间切片**：
+
+   - 将长任务分割成小片
+   - 可中断和恢复
+   - 优先级调度
+
+2. **优先级管理**：
+   - 紧急更新（如用户输入）
+   - 过渡更新（如 UI 切换）
+   - 空闲更新（如预渲染）
+
+```javascript
+// 优先级区分示例
+function updateUI() {
+  // 紧急更新：直接执行
+  setInputValue(e.target.value)
+
+  // 过渡更新：可中断
+  startTransition(() => {
+    setSearchResults(search(e.target.value))
+  })
+}
+```
+
+### 3.5 Fiber Diff 算法
+
+```javascript
+// Diff 算法的核心实现
+function reconcileChildFibers(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  newChild: any
+): Fiber | null {
+  // 1. 处理单个元素
+  if (typeof newChild === 'object' && newChild !== null) {
+    switch (newChild.$$typeof) {
+      case REACT_ELEMENT_TYPE:
+        return placeSingleChild(
+          reconcileSingleElement(
+            returnFiber,
+            currentFirstChild,
+            newChild
+          )
+        );
+      // ... 其他类型处理
+    }
+  }
+
+  // 2. 处理多个子元素（数组）
+  if (Array.isArray(newChild)) {
+    return reconcileChildrenArray(
+      returnFiber,
+      currentFirstChild,
+      newChild
+    );
+  }
+
+  // 3. 处理文本节点
+  if (typeof newChild === 'string' || typeof newChild === 'number') {
+    return reconcileSingleTextNode(
+      returnFiber,
+      currentFirstChild,
+      '' + newChild
+    );
+  }
+
+  // 4. 删除旧节点
+  return deleteRemainingChildren(returnFiber, currentFirstChild);
+}
+
+// 数组 Diff 的核心实现
+function reconcileChildrenArray(
+  returnFiber: Fiber,
+  currentFirstChild: Fiber | null,
+  newChildren: Array<any>
+): Fiber | null {
+  let oldFiber = currentFirstChild;
+  let previousNewFiber = null;
+  let newIdx = 0;
+
+  // 第一轮：处理更新的节点
+  for (; oldFiber !== null && newIdx < newChildren.length; newIdx++) {
+    if (oldFiber.index > newIdx) {
+      // 位置不匹配，需要移动
+      nextOldFiber = oldFiber;
+      oldFiber = null;
+    } else {
+      nextOldFiber = oldFiber.sibling;
+    }
+
+    const newFiber = updateSlot(
+      returnFiber,
+      oldFiber,
+      newChildren[newIdx]
+    );
+
+    if (newFiber === null) {
+      break; // key 不同，跳出第一轮循环
+    }
+
+    if (oldFiber && newFiber.alternate === null) {
+      // 删除旧节点
+      deleteChild(returnFiber, oldFiber);
+    }
+
+    // 更新位置信息
+    lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+
+    if (previousNewFiber === null) {
+      resultingFirstChild = newFiber;
+    } else {
+      previousNewFiber.sibling = newFiber;
+    }
+    previousNewFiber = newFiber;
+    oldFiber = nextOldFiber;
+  }
+
+  // 第二轮：处理剩余的新节点（添加）
+  if (newIdx === newChildren.length) {
+    // 删除剩余的旧节点
+    deleteRemainingChildren(returnFiber, oldFiber);
+    return resultingFirstChild;
+  }
+
+  // 第三轮：处理移动的节点
+  if (oldFiber === null) {
+    // 添加剩余的新节点
+    for (; newIdx < newChildren.length; newIdx++) {
+      const newFiber = createChild(returnFiber, newChildren[newIdx]);
+      if (newFiber === null) continue;
+      lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx);
+      // ... 构建兄弟关系
+    }
+    return resultingFirstChild;
+  }
+
+  // 将剩余的旧节点加入 map，用于复用
+  const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
+
+  // 尝试复用剩余节点
+  for (; newIdx < newChildren.length; newIdx++) {
+    const newFiber = updateFromMap(
+      existingChildren,
+      returnFiber,
+      newIdx,
+      newChildren[newIdx]
+    );
+    // ... 处理复用节点
+  }
+
+  return resultingFirstChild;
+}
+```
+
+### 3.6 Fiber Diff 与传统 Diff 的区别
+
+1. **可中断性**：
+
+   - 传统虚拟 DOM Diff 是同步的、不可中断的过程
+   - Fiber Diff 是可以被中断的，可以分片执行
+   - 通过 `workInProgress` 树实现可恢复
+
+2. **副作用收集**：
+
+   - 传统 Diff 直接操作 DOM
+   - Fiber Diff 会在 `flags` 中标记副作用
+   - 统一在 commit 阶段处理副作用
+
+3. **优先级处理**：
+
+   - 传统 Diff 没有优先级的概念
+   - Fiber Diff 可以根据优先级调度更新
+   - 高优先级更新可以打断低优先级 Diff
+
+4. **节点复用**：
+
+   - 传统 Diff 主要基于三个层面的比较（类型、属性、子节点）
+   - Fiber Diff 增加了 `alternate` 缓存和 `key` 的复用机制
+   - 通过 `mapRemainingChildren` 优化节点复用
+
+5. **更新粒度**：
+   - 传统 Diff 是组件级别的
+   - Fiber Diff 是 Fiber 节点级别的
+   - 可以更细粒度地控制更新
+
+## 4. Hooks 实现 (React 18)
+
+```javascript
+// Hooks 在 React 18 中的实现
+function useState(initialState) {
+  const dispatcher = ReactCurrentDispatcher.current
+  return dispatcher.useState(initialState)
+}
+
+function useEffect(create, deps) {
+  const dispatcher = ReactCurrentDispatcher.current
+  return dispatcher.useEffect(create, deps)
+}
+
+function useCallback(callback, deps) {
+  const dispatcher = ReactCurrentDispatcher.current
+  return dispatcher.useCallback(callback, deps)
+}
+
+function useMemo(create, deps) {
+  const dispatcher = ReactCurrentDispatcher.current
+  return dispatcher.useMemo(create, deps)
+}
+```
+
+## 5. 并发特性 (React 18)
+
+### 5.1 并发渲染的控制方式
+
+React 18 提供了多种方式来控制并发渲染：
+
+1. **自动并发模式**：
+
+```javascript
+// 使用 createRoot API 自动启用并发特性
+import { createRoot } from 'react-dom/client'
+
+const root = createRoot(container)
+root.render(<App />)
+```
+
+2. **手动控制并发更新**：
+
+```javascript
+// 1. useTransition - 用于非紧急更新
+function SearchPage() {
+  const [isPending, startTransition] = useTransition()
+  const [searchQuery, setSearchQuery] = useState('')
+
+  function handleInput(e) {
+    // 紧急更新：立即响应输入
+    setSearchQuery(e.target.value)
+
+    // 非紧急更新：可以被中断
+    startTransition(() => {
+      // 复杂的搜索逻辑
+      setSearchResults(search(e.target.value))
+    })
+  }
+
+  return (
+    <div>
+      <Input value={searchQuery} onChange={handleInput} />
+      {isPending && <Spinner />}
+      <SearchResults />
+    </div>
+  )
+}
+
+// 2. useDeferredValue - 用于延迟值的更新
+function AutoComplete({ searchText }) {
+  const deferredText = useDeferredValue(searchText)
+
+  // 使用 deferredText 进行复杂计算
+  const suggestions = useMemo(() => {
+    return computeExpensiveSuggestions(deferredText)
+  }, [deferredText])
+
+  return <SuggestionsList items={suggestions} />
+}
+
+// 3. Suspense - 用于数据加载和代码分割
+const SlowComponent = React.lazy(() => import('./SlowComponent'))
+
+function App() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <SlowComponent />
+    </Suspense>
+  )
+}
+```
+
+### 5.2 并发更新的优先级
+
+React 18 中的更新优先级分类：
+
+```javascript
+// 1. 紧急更新（同步）
+// - 用户输入
+// - 点击事件
+// - 布局测量
+const handleInput = (e) => {
+  setInputValue(e.target.value) // 立即执行
+}
+
+// 2. 过渡更新（可中断）
+// - 界面切换
+// - 数据筛选
+const handleFilter = (e) => {
+  startTransition(() => {
+    setFilteredItems(items.filter((item) => item.name.includes(e.target.value)))
+  })
+}
+
+// 3. 空闲更新（最低优先级）
+// - 预加载
+// - 数据预取
+const prefetchData = () => {
+  // 使用 useTransition 的低优先级
+  startTransition(() => {
+    prefetchNextPage()
+  })
+}
+```
+
+### 5.3 并发渲染的实现机制
+
+```javascript
+// 简化的并发渲染实现
+function workLoopConcurrent(deadline) {
+  // 初始化工作单元
+  let currentFiber = workInProgressRoot
+
+  while (currentFiber && !shouldYield(deadline)) {
+    // 1. 检查优先级
+    if (hasHigherPriorityWork()) {
+      // 中断当前工作
+      break
+    }
+
+    // 2. 处理当前工作单元
+    currentFiber = performUnitOfWork(currentFiber)
+
+    // 3. 检查是否需要让出控制权
+    if (deadline.timeRemaining() < 1) {
+      // 保存进度并让出控制权
+      requestIdleCallback(workLoopConcurrent)
+      break
+    }
+  }
+
+  // 4. 完成或中断后的处理
+  if (!currentFiber) {
+    // 所有工作完成，提交更新
+    commitRoot()
+  }
+}
+
+// 优先级检查
+function hasHigherPriorityWork() {
+  return (
+    scheduledPriority !== currentPriority && scheduledPriority > currentPriority
+  )
+}
+
+// 时间片检查
+function shouldYield(deadline) {
+  return deadline.timeRemaining() < 1
+}
+```
+
+### 5.4 使用场景建议
+
+1. **使用 useTransition 的场景**：
+
+   - 大量数据的过滤和排序
+   - 复杂列表的更新
+   - 页面切换动画
+
+2. **使用 useDeferredValue 的场景**：
+
+   - 实时搜索建议
+   - 图表数据更新
+   - 大型表单验证
+
+3. **使用 Suspense 的场景**：
+   - 数据预取
+   - 组件懒加载
+   - 图片加载优化
+
+## 6. 自动批处理 (React 18)
+
+### 6.1 基本概念
+
+自动批处理是 React 18 中的一个重要优化特性，它可以将多个状态更新合并为一次重渲染。
+
+### 6.2 React 18 之前的批处理
+
+```javascript
+// React 17 及之前版本
+function TodoList() {
+  const [todos, setTodos] = useState([])
+  const [count, setCount] = useState(0)
+
+  function handleClick() {
+    // 在事件处理函数中会批处理
+    setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+    setCount((c) => c + 1) // 不会立即重渲染
+    // 这里才会重渲染一次
+
+    // 在异步回调中不会批处理
+    setTimeout(() => {
+      setTodos((t) => [...t, 'New Todo']) // 触发重渲染
+      setCount((c) => c + 1) // 触发重渲染
+    }, 0)
+  }
+}
+```
+
+### 6.3 React 18 的自动批处理
+
+```javascript
+// React 18
+function TodoList() {
+  const [todos, setTodos] = useState([])
+  const [count, setCount] = useState(0)
+
+  async function handleClick() {
+    // 1. 同步代码中的批处理
+    setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+    setCount((c) => c + 1) // 不会立即重渲染
+    // 这里重渲染一次
+
+    // 2. setTimeout 中的自动批处理
+    setTimeout(() => {
+      setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+      setCount((c) => c + 1) // 不会立即重渲染
+      // 这里重渲染一次
+    }, 0)
+
+    // 3. Promise 中的自动批处理
+    await Promise.resolve()
+    setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+    setCount((c) => c + 1) // 不会立即重渲染
+    // 这里重渲染一次
+
+    // 4. await 后的自动批处理
+    await someAsyncOperation()
+    setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+    setCount((c) => c + 1) // 不会立即重渲染
+    // 这里重渲染一次
+  }
+}
+```
+
+### 6.4 手动控制批处理
+
+```javascript
+import { flushSync } from 'react-dom'
+
+function TodoList() {
+  const [todos, setTodos] = useState([])
+  const [count, setCount] = useState(0)
+
+  function handleClick() {
+    // 使用 flushSync 强制同步更新
+    flushSync(() => {
+      setTodos((t) => [...t, 'New Todo']) // 立即重渲染
+    })
+
+    flushSync(() => {
+      setCount((c) => c + 1) // 立即重渲染
+    })
+
+    // 正常的批处理继续有效
+    setTodos((t) => [...t, 'New Todo']) // 不会立即重渲染
+    setCount((c) => c + 1) // 不会立即重渲染
+    // 这里重渲染一次
+  }
+}
+```
+
+### 6.5 批处理的优势
+
+1. **性能优化**：
+
+   - 减少不必要的重渲染
+   - 合并多个状态更新
+   - 避免中间状态的渲染
+
+2. **一致性**：
+
+   - 确保状态更新的原子性
+   - 避免不必要的中间状态
+   - 减少视觉抖动
+
+3. **自动化**：
+   - 不需要手动优化
+   - 在所有场景下都有效
+   - 包括异步代码
+
+### 6.6 注意事项
+
+1. **何时使用 flushSync**：
+
+   - 需要立即获取 DOM 更新时
+   - 与第三方库集成时
+   - 特殊的动画效果
+
+2. **批处理的限制**：
+   - 不同优先级的更新不会批处理
+   - 不同组件树的更新不会批处理
+   - 手动调用 flushSync 会打破批处理
+
+## 总结
+
+React 18 的主要改进：
+
+1. 新的 JSX Transform
+2. 自动批处理
+3. 并发渲染
+4. Suspense 改进
+5. 新的 Root API
+6. 更好的 SSR 支持
+
+## 进阶学习建议
+
+1. 深入了解并发渲染机制
+2. 学习 Suspense 数据获取模式
+3. 掌握 useTransition 和 useDeferredValue
+4. 研究 React 18 的服务端组件
+5. 了解新的 Streaming SSR 架构
