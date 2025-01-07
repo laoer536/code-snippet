@@ -921,3 +921,798 @@ Vue 3 支持一系列的修饰符，用于在模板中指定 DOM 事件或者绑
 ```
 
 在这个例子中，`onCtrlShiftClick` 方法只会在用户点击按钮的同时精确按住 `Ctrl` 和 `Shift` 键时被调用，而 `onCtrlShiftKeyup` 方法只会在用户在输入框中释放键盘上的一个键的同时精确按住 `Ctrl` 和 `Shift` 键时被调用。其他任何键盘修饰键的组合都不会触发这些方法。
+
+# Vue 3 底层原理详解
+
+## 1. 模板编译原理
+
+### 1.1 编译过程概述
+
+Vue 3 的模板编译过程分为三个主要阶段:
+
+1. Parse (解析) - 将模板字符串转换为 AST
+2. Transform (转换) - 对 AST 进行转换优化
+3. Generate (生成) - 生成渲染函数
+
+### 1.2 Parse 阶段
+
+```javascript
+// 模板字符串
+const template = `
+  <div class="container">
+    <h1>{{ title }}</h1>
+    <button @click="increment">Count: {{ count }}</button>
+  </div>
+`
+
+// 解析后的 AST 结构
+const ast = {
+  type: NodeTypes.ELEMENT,
+  tag: 'div',
+  props: [
+    {
+      type: NodeTypes.ATTRIBUTE,
+      name: 'class',
+      value: {
+        type: NodeTypes.TEXT,
+        content: 'container',
+      },
+    },
+  ],
+  children: [
+    {
+      type: NodeTypes.ELEMENT,
+      tag: 'h1',
+      props: [],
+      children: [
+        {
+          type: NodeTypes.INTERPOLATION,
+          content: {
+            type: NodeTypes.SIMPLE_EXPRESSION,
+            content: 'title',
+          },
+        },
+      ],
+    },
+    {
+      type: NodeTypes.ELEMENT,
+      tag: 'button',
+      props: [
+        {
+          type: NodeTypes.DIRECTIVE,
+          name: 'on',
+          arg: {
+            type: NodeTypes.SIMPLE_EXPRESSION,
+            content: 'click',
+          },
+          exp: {
+            type: NodeTypes.SIMPLE_EXPRESSION,
+            content: 'increment',
+          },
+        },
+      ],
+      children: [
+        {
+          type: NodeTypes.TEXT,
+          content: 'Count: ',
+        },
+        {
+          type: NodeTypes.INTERPOLATION,
+          content: {
+            type: NodeTypes.SIMPLE_EXPRESSION,
+            content: 'count',
+          },
+        },
+      ],
+    },
+  ],
+}
+```
+
+### 1.3 Transform 阶段
+
+```javascript
+// Transform 插件示例
+const transformElement = {
+  nodeTransforms: [
+    (node, context) => {
+      if (node.type === NodeTypes.ELEMENT) {
+        // 1. 处理指令
+        const directives = node.props.filter(
+          (p) => p.type === NodeTypes.DIRECTIVE,
+        )
+
+        // 2. 处理事件
+        const events = directives.filter((d) => d.name === 'on')
+        events.forEach((event) => {
+          // 转换为 withDirectives 调用
+          context.helper(RESOLVE_DIRECTIVE)
+        })
+
+        // 3. 处理动态属性
+        const dynamicProps = node.props.filter((p) => p.dynamic)
+        if (dynamicProps.length) {
+          context.helper(RESOLVE_PROPS)
+        }
+      }
+    },
+  ],
+}
+
+// Hoisting 优化
+function hoistStatic(ast, context) {
+  // 提升静态节点
+  walk(ast, context, {
+    enter(node, parent) {
+      if (isStaticNode(node)) {
+        context.hoists.push(node)
+        // 替换为静态标记
+        parent.children[index] = createStaticVNode(node)
+      }
+    },
+  })
+}
+```
+
+### 1.4 Generate 阶段
+
+```javascript
+// 生成渲染函数
+function generate(ast) {
+  return {
+    code: `
+      const _Vue = Vue
+      
+      return function render(_ctx, _cache) {
+        with (_ctx) {
+          const { createVNode: _createVNode, toDisplayString: _toDisplayString } = _Vue
+          
+          return _createVNode("div", {
+            class: "container"
+          }, [
+            _createVNode("h1", null, _toDisplayString(title)),
+            _createVNode("button", {
+              onClick: increment
+            }, "Count: " + _toDisplayString(count))
+          ])
+        }
+      }
+    `,
+  }
+}
+```
+
+## 2. 响应式系统
+
+### 2.1 Proxy 基础实现
+
+```javascript
+// 基础的响应式实现
+function reactive(target) {
+  return new Proxy(target, {
+    get(target, key, receiver) {
+      // 依赖收集
+      track(target, key)
+      const res = Reflect.get(target, key, receiver)
+      return isObject(res) ? reactive(res) : res
+    },
+    set(target, key, value, receiver) {
+      const oldValue = target[key]
+      const result = Reflect.set(target, key, value, receiver)
+      // 触发更新
+      if (hasChanged(value, oldValue)) {
+        trigger(target, key)
+      }
+      return result
+    },
+  })
+}
+
+// 依赖收集
+let activeEffect
+const targetMap = new WeakMap()
+
+function track(target, key) {
+  if (!activeEffect) return
+
+  let depsMap = targetMap.get(target)
+  if (!depsMap) {
+    targetMap.set(target, (depsMap = new Map()))
+  }
+
+  let dep = depsMap.get(key)
+  if (!dep) {
+    depsMap.set(key, (dep = new Set()))
+  }
+
+  dep.add(activeEffect)
+}
+
+// 触发更新
+function trigger(target, key) {
+  const depsMap = targetMap.get(target)
+  if (!depsMap) return
+
+  const dep = depsMap.get(key)
+  if (dep) {
+    dep.forEach((effect) => effect())
+  }
+}
+```
+
+### 2.2 Ref 实现
+
+```javascript
+// Ref 的实现
+class RefImpl {
+  private _value;
+  public dep;
+  public readonly __v_isRef = true;
+
+  constructor(value) {
+    this._value = isObject(value) ? reactive(value) : value;
+    this.dep = new Set();
+  }
+
+  get value() {
+    trackRefValue(this);
+    return this._value;
+  }
+
+  set value(newVal) {
+    if (hasChanged(newVal, this._value)) {
+      this._value = isObject(newVal) ? reactive(newVal) : newVal;
+      triggerRefValue(this);
+    }
+  }
+}
+
+// 创建 ref
+function ref(value) {
+  return new RefImpl(value);
+}
+```
+
+### 2.3 计算属性实现
+
+```javascript
+// 计算属性的实现
+class ComputedRefImpl {
+  private _getter;
+  private _dirty = true;
+  private _value;
+  private effect;
+
+  constructor(getter) {
+    this._getter = getter;
+    this.effect = effect(getter, {
+      lazy: true,
+      scheduler: () => {
+        if (!this._dirty) {
+          this._dirty = true;
+          trigger(this, 'value');
+        }
+      }
+    });
+  }
+
+  get value() {
+    if (this._dirty) {
+      this._value = this.effect();
+      this._dirty = false;
+    }
+    track(this, 'value');
+    return this._value;
+  }
+}
+
+// 创建计算属性
+function computed(getter) {
+  return new ComputedRefImpl(getter);
+}
+```
+
+## 3. 虚拟 DOM 与 Diff 算法
+
+### 3.1 虚拟 DOM 结构
+
+```javascript
+// VNode 结构
+const vnode = {
+  type: 'div',
+  props: {
+    class: 'container',
+    onClick: () => console.log('clicked'),
+  },
+  children: [
+    {
+      type: 'h1',
+      props: null,
+      children: 'Hello Vue 3',
+    },
+  ],
+}
+
+// 组件 VNode
+const componentVNode = {
+  type: {
+    setup() {
+      const count = ref(0)
+      return { count }
+    },
+    render() {
+      return h('div', null, this.count)
+    },
+  },
+  props: { msg: 'Hello' },
+  children: null,
+}
+```
+
+### 3.2 Diff 算法实现
+
+```javascript
+// 快速 Diff 算法
+function patchKeyedChildren(c1, c2, container) {
+  let i = 0
+  const l2 = c2.length
+  let e1 = c1.length - 1
+  let e2 = l2 - 1
+
+  // 1. 从头部开始比对
+  while (i <= e1 && i <= e2) {
+    const n1 = c1[i]
+    const n2 = c2[i]
+    if (isSameVNodeType(n1, n2)) {
+      patch(n1, n2, container)
+    } else {
+      break
+    }
+    i++
+  }
+
+  // 2. 从尾部开始比对
+  while (i <= e1 && i <= e2) {
+    const n1 = c1[e1]
+    const n2 = c2[e2]
+    if (isSameVNodeType(n1, n2)) {
+      patch(n1, n2, container)
+    } else {
+      break
+    }
+    e1--
+    e2--
+  }
+
+  // 3. 处理新增节点
+  if (i > e1) {
+    if (i <= e2) {
+      const nextPos = e2 + 1
+      const anchor = nextPos < l2 ? c2[nextPos].el : null
+      while (i <= e2) {
+        patch(null, c2[i], container, anchor)
+        i++
+      }
+    }
+  }
+
+  // 4. 处理需要移动的节点
+  else if (i > e2) {
+    while (i <= e1) {
+      unmount(c1[i])
+      i++
+    }
+  }
+
+  // 5. 处理未知子序列
+  else {
+    const s1 = i
+    const s2 = i
+
+    // 5.1 构建 key 的索引图
+    const keyToNewIndexMap = new Map()
+    for (i = s2; i <= e2; i++) {
+      const nextChild = c2[i]
+      if (nextChild.key != null) {
+        keyToNewIndexMap.set(nextChild.key, i)
+      }
+    }
+
+    // 5.2 更新和移动节点
+    let j
+    let patched = 0
+    const toBePatched = e2 - s2 + 1
+    let moved = false
+    let maxNewIndexSoFar = 0
+
+    const newIndexToOldIndexMap = new Array(toBePatched)
+    for (i = 0; i < toBePatched; i++) newIndexToOldIndexMap[i] = 0
+
+    for (i = s1; i <= e1; i++) {
+      const prevChild = c1[i]
+      if (patched >= toBePatched) {
+        unmount(prevChild)
+        continue
+      }
+
+      let newIndex
+      if (prevChild.key != null) {
+        newIndex = keyToNewIndexMap.get(prevChild.key)
+      } else {
+        for (j = s2; j <= e2; j++) {
+          if (isSameVNodeType(prevChild, c2[j])) {
+            newIndex = j
+            break
+          }
+        }
+      }
+
+      if (newIndex === undefined) {
+        unmount(prevChild)
+      } else {
+        newIndexToOldIndexMap[newIndex - s2] = i + 1
+        if (newIndex >= maxNewIndexSoFar) {
+          maxNewIndexSoFar = newIndex
+        } else {
+          moved = true
+        }
+        patch(prevChild, c2[newIndex], container)
+        patched++
+      }
+    }
+
+    // 5.3 移动和挂载
+    const increasingNewIndexSequence = moved
+      ? getSequence(newIndexToOldIndexMap)
+      : []
+    j = increasingNewIndexSequence.length - 1
+
+    for (i = toBePatched - 1; i >= 0; i--) {
+      const nextIndex = s2 + i
+      const nextChild = c2[nextIndex]
+      const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null
+
+      if (newIndexToOldIndexMap[i] === 0) {
+        patch(null, nextChild, container, anchor)
+      } else if (moved) {
+        if (j < 0 || i !== increasingNewIndexSequence[j]) {
+          move(nextChild, container, anchor)
+        } else {
+          j--
+        }
+      }
+    }
+  }
+}
+```
+
+## 4. 组件系统
+
+### 4.1 组件实例结构
+
+```javascript
+// 组件实例
+const instance = {
+  // 组件状态
+  data: reactive({}),
+  props: shallowReactive({}),
+  attrs: shallowReactive({}),
+  slots: shallowReactive({}),
+  emit: () => {},
+
+  // 渲染相关
+  subTree: null,
+  isMounted: false,
+  update: null,
+  next: null,
+
+  // 生命周期
+  bm: null, // beforeMount
+  m: null, // mounted
+  bu: null, // beforeUpdate
+  u: null, // updated
+
+  // 依赖注入
+  provides: Object.create(null),
+  parent: null,
+
+  // 组件定义
+  type: {
+    setup() {},
+    render() {},
+    components: {},
+    directives: {},
+  },
+}
+```
+
+### 4.2 组件渲染流程
+
+```javascript
+// 组件的挂载和更新
+function setupComponent(instance) {
+  // 1. 处理 props
+  initProps(instance)
+
+  // 2. 处理插槽
+  initSlots(instance)
+
+  // 3. 设置有状态的组件
+  setupStatefulComponent(instance)
+}
+
+function setupStatefulComponent(instance) {
+  // 1. 创建渲染上下文
+  instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers)
+
+  // 2. 执行 setup
+  const { setup } = instance.type
+  if (setup) {
+    const setupContext = createSetupContext(instance)
+    const setupResult = setup(instance.props, setupContext)
+    handleSetupResult(instance, setupResult)
+  }
+
+  // 3. 完成组件设置
+  finishComponentSetup(instance)
+}
+
+// 组件更新
+function updateComponent(n1, n2) {
+  const instance = (n2.component = n1.component)
+
+  // 检查是否需要更新
+  if (shouldUpdateComponent(n1, n2)) {
+    instance.next = n2
+    instance.update()
+  } else {
+    n2.component = n1.component
+    n2.el = n1.el
+    instance.vnode = n2
+  }
+}
+```
+
+### 4.3 异步组件实现
+
+```javascript
+// 异步组件的实现
+function defineAsyncComponent(source) {
+  return {
+    name: 'AsyncComponentWrapper',
+    setup() {
+      const loaded = ref(false)
+      const error = ref(null)
+      const loading = ref(false)
+      const component = ref(null)
+
+      // 加载组件
+      let loadingTimer = null
+
+      function load() {
+        loading.value = true
+
+        return Promise.resolve(source)
+          .then((comp) => {
+            component.value = comp
+            loaded.value = true
+          })
+          .catch((err) => {
+            error.value = err
+          })
+          .finally(() => {
+            loading.value = false
+            clearTimeout(loadingTimer)
+          })
+      }
+
+      // 开始加载
+      load()
+
+      return () => {
+        if (loaded.value) {
+          return h(component.value)
+        } else if (error.value && ErrorComponent) {
+          return h(ErrorComponent)
+        } else if (loading.value && LoadingComponent) {
+          return h(LoadingComponent)
+        }
+        return h(Suspense)
+      }
+    },
+  }
+}
+```
+
+## 5. 编译优化
+
+### 5.1 静态提升
+
+```javascript
+// 编译优化示例
+const hoistedElements = []
+
+function hoistStatic(ast) {
+  // 1. 标记静态节点
+  walk(ast, {
+    enter(node) {
+      if (isStaticNode(node)) {
+        node.static = true
+        hoistedElements.push(node)
+      }
+    },
+  })
+
+  // 2. 生成静态渲染函数
+  if (hoistedElements.length) {
+    return `const _hoisted = [
+      ${hoistedElements.map((node) => genNode(node)).join(',\n')}
+    ]`
+  }
+}
+```
+
+### 5.2 Block Tree
+
+```javascript
+// Block Tree 优化
+function createBlock(type, props, children, patchFlag) {
+  const vnode = createVNode(type, props, children, patchFlag)
+  vnode.dynamicChildren = []
+  openBlock()
+  // 处理子节点
+  closeBlock()
+  return vnode
+}
+
+// 收集动态节点
+function openBlock() {
+  blockStack.push([])
+}
+
+function closeBlock() {
+  const dynamicChildren = blockStack.pop()
+  const parentBlock = blockStack[blockStack.length - 1]
+  if (parentBlock) {
+    parentBlock.push(...dynamicChildren)
+  }
+  return dynamicChildren
+}
+```
+
+### 5.3 PatchFlags 优化
+
+```javascript
+// PatchFlags 标记
+const PatchFlags = {
+  TEXT: 1, // 动态文本节点
+  CLASS: 2, // 动态 class
+  STYLE: 4, // 动态 style
+  PROPS: 8, // 动态属性
+  FULL_PROPS: 16, // 有动态 key 的属性
+  HYDRATE_EVENTS: 32, // 有监听事件的节点
+  STABLE_FRAGMENT: 64, // 稳定序列
+  KEYED_FRAGMENT: 128, // 有 key 的片段
+  UNKEYED_FRAGMENT: 256, // 无 key 的片段
+  NEED_PATCH: 512, // 一个节点只会进行非属性比较
+  DYNAMIC_SLOTS: 1024, // 动态插槽
+}
+
+// 使用 PatchFlags
+const vnode = createVNode(
+  'div',
+  {
+    class: 'foo',
+    style: { color: 'red' },
+  },
+  null,
+  PatchFlags.CLASS | PatchFlags.STYLE,
+)
+```
+
+## 6. 常见误解
+
+### 6.1 误解：响应式系统总是同步更新
+
+```javascript
+// 实际情况：Vue 3 的响应式系统是异步批量更新的
+const Counter = {
+  setup() {
+    const count = ref(0)
+
+    function increment() {
+      // 这些更新会被批量处理
+      count.value++
+      count.value++
+      count.value++
+      // 实际上只会触发一次重渲染
+    }
+
+    return { count, increment }
+  },
+}
+
+// 手动控制更新时机
+function forceUpdate() {
+  // 立即更新
+  flushSync(() => {
+    count.value++
+  })
+  // 这里可以立即访问到更新后的 DOM
+}
+```
+
+### 6.2 最佳实践
+
+1. **合理使用响应式 API**：
+
+```javascript
+// 1. ref 用于基础类型
+const count = ref(0)
+
+// 2. reactive 用于对象
+const state = reactive({
+  user: { name: 'John', age: 25 },
+  settings: { theme: 'dark' },
+})
+
+// 3. computed 用于派生状态
+const doubleCount = computed(() => count.value * 2)
+
+// 4. readonly 用于只读数据
+const readOnlyState = readonly(state)
+```
+
+2. **性能优化技巧**：
+
+```javascript
+// 1. v-once 用于静态内容
+<template>
+  <div v-once>这个内容永远不会改变</div>
+</template>
+
+// 2. v-memo 用于有条件的跳过更新
+<template>
+  <div v-memo="[item.id]">
+    <ExpensiveComponent :item="item" />
+  </div>
+</template>
+
+// 3. 使用 shallowRef 或 shallowReactive 处理大数据
+const state = shallowRef({ huge: 'data' });
+```
+
+3. **组件设计原则**：
+
+```javascript
+// 1. 组件通信推荐使用 props 和 emit
+const Child = {
+  props: ['value'],
+  emits: ['update'],
+  setup(props, { emit }) {
+    const handleClick = () => {
+      emit('update', props.value + 1)
+    }
+    return { handleClick }
+  },
+}
+
+// 2. 使用组合式函数复用逻辑
+function useCounter(initialValue = 0) {
+  const count = ref(initialValue)
+  const increment = () => count.value++
+  const decrement = () => count.value--
+
+  return {
+    count,
+    increment,
+    decrement,
+  }
+}
+```
+
+理解这些概念对于正确使用 Vue 3 非常重要，因为：
+
+1. 它帮助我们理解 Vue 3 的工作原理
+2. 指导我们采用正确的优化策略
+3. 帮助我们写出更高质量的 Vue 应用

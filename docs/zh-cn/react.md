@@ -907,42 +907,267 @@ function Counter() {
 
 ### 3.1 Fiber 架构基础
 
-```javascript
-// React 18 中的 Fiber 节点
-const fiber = {
-  // 节点类型信息
-  tag: 0, // 标识fiber类型
-  type: null, // 组件类型，如 'div', function Component() 等
-  elementType: null, // 元素类型
+首先看一个复杂组件示例：
 
-  // 节点数据
-  key: null,
-  props: null,
-  ref: null,
+```jsx
+// TodoApp 组件
+function TodoApp() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: 'Learn React' },
+    { id: 2, text: 'Learn Fiber' },
+  ])
+  const [input, setInput] = useState('')
 
-  // Fiber 树结构
-  return: null, // 父节点
-  child: null, // 第一个子节点
-  sibling: null, // 下一个兄弟节点
+  return (
+    <div className="todo-app">
+      <header>
+        <h1>Todo List</h1>
+        <input value={input} onChange={(e) => setInput(e.target.value)} />
+      </header>
+      <ul className="todo-list">
+        {todos.map((todo) => (
+          <TodoItem key={todo.id} text={todo.text} />
+        ))}
+      </ul>
+    </div>
+  )
+}
 
-  // 状态相关
-  pendingProps: null,
-  memoizedProps: null,
-  memoizedState: null,
+function TodoItem({ text }) {
+  const [isDone, setIsDone] = useState(false)
 
-  // 副作用相关
-  flags: 0, // 标记节点的副作用类型
-  subtreeFlags: 0,
-  deletions: null,
-
-  // 调度优先级相关
-  lanes: 0,
-  childLanes: 0,
-
-  // 更新相关
-  alternate: null, // 指向旧树的同位置节点
+  return (
+    <li className={isDone ? 'done' : ''}>
+      <input
+        type="checkbox"
+        checked={isDone}
+        onChange={() => setIsDone(!isDone)}
+      />
+      <span>{text}</span>
+    </li>
+  )
 }
 ```
+
+对应的 Fiber 节点树结构：
+
+```javascript
+// Root Fiber
+const rootFiber = {
+  tag: 3, // HostRoot
+  stateNode: document.getElementById('root'),
+  type: null,
+  return: null,
+  child: todoAppFiber, // 指向 TodoApp 组件
+  memoizedState: null,
+  memoizedProps: null,
+}
+
+// TodoApp 组件对应的 Fiber
+const todoAppFiber = {
+  tag: 0, // FunctionComponent
+  type: TodoApp,
+  key: null,
+  stateNode: null,
+  return: rootFiber,
+  child: divFiber, // 指向最外层 div
+  sibling: null,
+  memoizedState: {
+    memoizedState: [
+      [
+        { id: 1, text: 'Learn React' },
+        { id: 2, text: 'Learn Fiber' },
+      ], // todos state
+      Function, // setTodos
+    ],
+    next: {
+      memoizedState: ['', Function], // input state
+    },
+  },
+  memoizedProps: {},
+  flags: 0,
+  lanes: 0,
+}
+
+// 最外层 div 的 Fiber
+const divFiber = {
+  tag: 5, // HostComponent
+  type: 'div',
+  key: null,
+  stateNode: HTMLDivElement, // 实际的 DOM 节点
+  return: todoAppFiber,
+  child: headerFiber,
+  sibling: null,
+  memoizedProps: {
+    className: 'todo-app',
+    children: [
+      /*...*/
+    ],
+  },
+  flags: 0,
+}
+
+// header 的 Fiber
+const headerFiber = {
+  tag: 5, // HostComponent
+  type: 'header',
+  key: null,
+  stateNode: HTMLElement,
+  return: divFiber,
+  child: h1Fiber,
+  sibling: ulFiber, // 指向同级的 ul
+  memoizedProps: {
+    children: [
+      /*...*/
+    ],
+  },
+}
+
+// h1 的 Fiber
+const h1Fiber = {
+  tag: 5,
+  type: 'h1',
+  key: null,
+  stateNode: HTMLHeadingElement,
+  return: headerFiber,
+  child: null,
+  sibling: inputFiber,
+  memoizedProps: {
+    children: 'Todo List',
+  },
+}
+
+// input 的 Fiber
+const inputFiber = {
+  tag: 5,
+  type: 'input',
+  key: null,
+  stateNode: HTMLInputElement,
+  return: headerFiber,
+  child: null,
+  sibling: null,
+  memoizedProps: {
+    value: '',
+    onChange: Function,
+  },
+}
+
+// ul 的 Fiber
+const ulFiber = {
+  tag: 5,
+  type: 'ul',
+  key: null,
+  stateNode: HTMLUListElement,
+  return: divFiber,
+  child: todoItemFiber1,
+  sibling: null,
+  memoizedProps: {
+    className: 'todo-list',
+    children: [
+      /*...*/
+    ],
+  },
+}
+
+// 第一个 TodoItem 组件的 Fiber
+const todoItemFiber1 = {
+  tag: 0, // FunctionComponent
+  type: TodoItem,
+  key: '1',
+  stateNode: null,
+  return: ulFiber,
+  child: liFiber1,
+  sibling: todoItemFiber2,
+  memoizedState: {
+    memoizedState: [false, Function], // isDone state
+  },
+  memoizedProps: {
+    text: 'Learn React',
+  },
+}
+
+// 第一个 TodoItem 的 li 元素 Fiber
+const liFiber1 = {
+  tag: 5,
+  type: 'li',
+  key: null,
+  stateNode: HTMLLIElement,
+  return: todoItemFiber1,
+  child: checkboxFiber1,
+  sibling: null,
+  memoizedProps: {
+    className: '',
+    children: [
+      /*...*/
+    ],
+  },
+}
+
+// 第一个 TodoItem 的 checkbox Fiber
+const checkboxFiber1 = {
+  tag: 5,
+  type: 'input',
+  key: null,
+  stateNode: HTMLInputElement,
+  return: liFiber1,
+  child: null,
+  sibling: spanFiber1,
+  memoizedProps: {
+    type: 'checkbox',
+    checked: false,
+    onChange: Function,
+  },
+}
+
+// 第一个 TodoItem 的文本 span Fiber
+const spanFiber1 = {
+  tag: 5,
+  type: 'span',
+  key: null,
+  stateNode: HTMLSpanElement,
+  return: liFiber1,
+  child: null,
+  sibling: null,
+  memoizedProps: {
+    children: 'Learn React',
+  },
+}
+
+// 第二个 TodoItem 的结构类似...
+const todoItemFiber2 = {
+  tag: 0,
+  type: TodoItem,
+  key: '2',
+  // ... 结构类似 todoItemFiber1
+}
+```
+
+这个示例展示了：
+
+1. **Fiber 节点的层级关系**：
+
+   - `return`: 指向父节点
+   - `child`: 指向第一个子节点
+   - `sibling`: 指向下一个兄弟节点
+
+2. **不同类型节点的特征**：
+
+   - 函数组件 (tag: 0)
+   - DOM 元素 (tag: 5)
+   - Root (tag: 3)
+
+3. **状态管理**：
+
+   - `memoizedState`: 保存组件的 state
+   - `memoizedProps`: 保存组件的 props
+
+4. **副作用标记**：
+
+   - `flags`: 标记更新类型
+   - `lanes`: 更新优先级
+
+5. **实际 DOM 关联**：
+   - `stateNode`: 指向实际的 DOM 节点或组件实例
 
 ### 3.2 Fiber 与并发渲染的结合
 
@@ -1191,10 +1416,213 @@ function reconcileChildrenArray(
    - Fiber Diff 增加了 `alternate` 缓存和 `key` 的复用机制
    - 通过 `mapRemainingChildren` 优化节点复用
 
-5. **更新粒度**：
-   - 传统 Diff 是组件级别的
-   - Fiber Diff 是 Fiber 节点级别的
-   - 可以更细粒度地控制更新
+5. **更新方式**：
+   - 传统 Diff 是一次性完成的同步过程
+   - Fiber Diff 将组件更新分解成多个工作单元
+   - 每个工作单元可以被独立调度和中断
+
+补充说明：Fiber 节点与组件是一一对应的关系，每个组件都会创建对应的 Fiber 节点。Fiber 的革新不在于更新粒度的改变，而在于：
+
+1. 能够将组件的渲染工作分解成小单元
+2. 能够对渲染工作进行优先级排序
+3. 能够暂停、继续或丢弃渲染工作
+4. 能够复用已完成的工作
+
+### 3.7 Fiber 结构与更新的常见误解
+
+#### 3.7.1 误解：Fiber 的细粒度结构意味着更新也是细粒度的
+
+虽然 Fiber 的结构是细粒度的（每个元素都有对应的 Fiber 节点），但默认的更新策略仍然是组件级别的。让我们通过例子来理解：
+
+```javascript
+// 1. 组件结构
+function TodoList() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="container">
+      <h1>Count: {count}</h1>
+      <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+      </ul>
+      <button onClick={() => setCount((c) => c + 1)}>Increment</button>
+    </div>
+  )
+}
+
+// 2. 对应的 Fiber 结构（简化版）
+const fiber = {
+  // TodoList 组件的 Fiber
+  tag: 0,
+  type: TodoList,
+  child: {
+    // div 的 Fiber
+    tag: 5,
+    type: 'div',
+    child: {
+      // h1 的 Fiber
+      tag: 5,
+      type: 'h1',
+      sibling: {
+        // ul 的 Fiber
+        tag: 5,
+        type: 'ul',
+        child: {
+          // li 的 Fiber
+          tag: 5,
+          type: 'li',
+          // ... 更多 li
+        },
+      },
+    },
+  },
+}
+```
+
+#### 3.7.2 实际的更新行为
+
+1. **默认情况**：
+
+```javascript
+function TodoList() {
+  const [count, setCount] = useState(0)
+
+  // 当 count 更新时，整个组件都会重新渲染
+  // 尽管只有 h1 中的内容发生变化
+  // ul 和其中的 li 也会重新渲染
+}
+```
+
+2. **优化方案**：
+
+```javascript
+// 使用 memo 进行组件级别的优化
+const TodoItems = React.memo(function TodoItems() {
+  return (
+    <ul>
+      <li>Item 1</li>
+      <li>Item 2</li>
+    </ul>
+  )
+})
+
+function TodoList() {
+  const [count, setCount] = useState(0)
+
+  return (
+    <div className="container">
+      <h1>Count: {count}</h1>
+      <TodoItems /> {/* 现在不会随 count 更新而重新渲染 */}
+      <button onClick={() => setCount((c) => c + 1)}>Increment</button>
+    </div>
+  )
+}
+```
+
+#### 3.7.3 Fiber 结构的真正意义
+
+1. **可中断的更新**：
+
+```javascript
+// Fiber 结构允许 React 在处理更新时：
+while (nextUnitOfWork && !shouldYield()) {
+  // 处理一个工作单元
+  nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
+  // 检查是否需要让出控制权
+  if (deadline.timeRemaining() < 1) {
+    // 保存进度，让出控制权
+    break
+  }
+}
+```
+
+2. **优先级调度**：
+
+```javascript
+function TodoList() {
+  const [isPending, startTransition] = useTransition()
+
+  const handleUpdate = () => {
+    // 高优先级更新
+    setInputValue(input)
+
+    // 低优先级更新
+    startTransition(() => {
+      setFilteredItems(filterItems(input))
+    })
+  }
+}
+```
+
+3. **更新追踪**：
+
+```javascript
+const fiber = {
+  // 通过 flags 标记更新类型
+  flags: Update | Placement | Deletion,
+
+  // 通过 lanes 标记优先级
+  lanes: UpdateLane | TransitionLane,
+}
+```
+
+#### 3.7.4 最佳实践
+
+1. **合理的组件拆分**：
+
+```javascript
+// 将可能频繁更新的部分抽离为独立组件
+function Counter({ count }) {
+  return <h1>Count: {count}</h1>
+}
+
+function TodoList() {
+  const [count, setCount] = useState(0)
+  return (
+    <div>
+      <Counter count={count} />
+      <TodoItems /> {/* 独立的不需要更新的部分 */}
+    </div>
+  )
+}
+```
+
+2. **使用适当的优化 API**：
+
+```javascript
+// 1. React.memo 用于组件级缓存
+const MemoizedComponent = React.memo(Component)
+
+// 2. useMemo 用于值的缓存
+const memoizedValue = useMemo(() => computeExpensive(a, b), [a, b])
+
+// 3. useCallback 用于回调函数的缓存
+const memoizedCallback = useCallback(() => {
+  doSomething(a, b)
+}, [a, b])
+```
+
+3. **利用并发特性**：
+
+```javascript
+// 使用并发特性处理大量数据更新
+function handleChange(e) {
+  // 立即更新输入值
+  setInputValue(e.target.value)
+
+  // 延迟处理大量数据
+  startTransition(() => {
+    setFilteredList(filterLargeList(e.target.value))
+  })
+}
+```
+
+理解这个误解很重要，因为：
+
+1. 它帮助我们正确认识 Fiber 架构的作用
+2. 指导我们采用正确的优化策略
+3. 帮助我们更好地利用 React 的并发特性
 
 ## 4. Hooks 实现 (React 18)
 
